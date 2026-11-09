@@ -141,7 +141,7 @@ export const AdminRoutesPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+          <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest">
             Corridor Mapping
           </span>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
@@ -154,7 +154,7 @@ export const AdminRoutesPage = () => {
 
         <button
           onClick={openCreateModal}
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-indigo-600/20"
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-emerald-600/20"
         >
           <Plus className="w-4 h-4" />
           <span>Create New Route</span>
@@ -163,7 +163,7 @@ export const AdminRoutesPage = () => {
 
       {loading ? (
         <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-indigo-600" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading route corridors...</p>
         </div>
       ) : error ? (
@@ -189,7 +189,7 @@ export const AdminRoutesPage = () => {
                   <tr key={r._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                     <td className="py-4 px-5">
                       <p className="font-bold text-slate-900 dark:text-white text-sm">{r.routeName}</p>
-                      <span className="font-mono text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">
+                      <span className="font-mono text-[10px] text-teal-600 dark:text-teal-400 font-bold">
                         {r.routeCode}
                       </span>
                     </td>
@@ -251,7 +251,7 @@ export const AdminRoutesPage = () => {
                     placeholder="e.g. Delhi ISBT to Jaipur Sindhi Camp"
                     value={routeName}
                     onChange={(e) => setRouteName(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -265,7 +265,7 @@ export const AdminRoutesPage = () => {
                     placeholder="e.g. DEL-JAI-EXP"
                     value={routeCode}
                     onChange={(e) => setRouteCode(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -279,7 +279,7 @@ export const AdminRoutesPage = () => {
                     min={1}
                     value={totalDistance}
                     onChange={(e) => setTotalDistance(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -293,7 +293,7 @@ export const AdminRoutesPage = () => {
                     placeholder="e.g. 5h 30m"
                     value={estimatedDuration}
                     onChange={(e) => setEstimatedDuration(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -304,7 +304,7 @@ export const AdminRoutesPage = () => {
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="INACTIVE">INACTIVE</option>
@@ -321,7 +321,7 @@ export const AdminRoutesPage = () => {
                   <button
                     type="button"
                     onClick={handleAddStop}
-                    className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline"
+                    className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
                   >
                     + Add Intermediate Stop
                   </button>
@@ -382,7 +382,7 @@ export const AdminRoutesPage = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 disabled:opacity-50"
                 >
                   {submitting ? 'Saving...' : 'Save Route Corridor'}
                 </button>

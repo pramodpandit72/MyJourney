@@ -55,15 +55,15 @@ export const Navbar = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo & Brand */}
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-tr from-blue-700 to-indigo-800 flex items-center justify-center text-white shadow-sm group-hover:shadow-md transition-all">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-tr from-emerald-600 via-teal-600 to-cyan-600 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20 group-hover:shadow-md transition-all">
               <Bus className="w-5 h-5 text-white" />
             </div>
             <div>
               <div className="flex items-center space-x-1.5">
                 <span className="font-extrabold text-xl tracking-tight text-slate-900 dark:text-white">
-                  Yatra<span className="text-blue-600 dark:text-blue-400">Setu</span>
+                  Yatra<span className="text-emerald-600 dark:text-emerald-400">Setu</span>
                 </span>
-                <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
+                <span className="text-[10px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                   Portal
                 </span>
               </div>
@@ -79,8 +79,8 @@ export const Navbar = () => {
               to="/"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive('/')
-                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40'
-                  : 'text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                  ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 font-bold'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-slate-800/60'
               }`}
             >
               Home
@@ -89,8 +89,8 @@ export const Navbar = () => {
               to="/search"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                 isActive('/search')
-                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40'
-                  : 'text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                  ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 font-bold'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-slate-800/60'
               }`}
             >
               Search Buses
@@ -100,8 +100,8 @@ export const Navbar = () => {
                 to="/my-bookings"
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive('/my-bookings')
-                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40'
-                    : 'text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800/60'
+                    ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 font-bold'
+                    : 'text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-slate-800/60'
                 }`}
               >
                 My Bookings
@@ -110,18 +110,18 @@ export const Navbar = () => {
             {isAdmin && (
               <Link
                 to="/admin"
-                className="px-3 py-2 rounded-md text-sm font-semibold text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 transition-colors flex items-center space-x-1.5"
+                className="px-3 py-2 rounded-md text-sm font-semibold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/50 hover:bg-teal-100 transition-colors flex items-center space-x-1.5 border border-teal-200 dark:border-teal-800/50"
               >
-                <ShieldAlert className="w-4 h-4" />
+                <ShieldAlert className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                 <span>Admin Portal</span>
               </Link>
             )}
             {isOperator && (
               <Link
                 to="/operator"
-                className="px-3 py-2 rounded-md text-sm font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 transition-colors flex items-center space-x-1.5"
+                className="px-3 py-2 rounded-md text-sm font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 transition-colors flex items-center space-x-1.5 border border-emerald-200 dark:border-emerald-800/50"
               >
-                <ClipboardList className="w-4 h-4" />
+                <ClipboardList className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Operator Portal</span>
               </Link>
             )}
@@ -133,7 +133,7 @@ export const Navbar = () => {
             <button
               onClick={toggleTheme}
               aria-label="Toggle theme"
-              className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               {theme === 'dark' ? (
                 <Sun className="w-5 h-5 text-amber-400" />
@@ -146,9 +146,9 @@ export const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex items-center space-x-2 pl-2 pr-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/70 transition-colors text-slate-800 dark:text-slate-200"
+                  className="flex items-center space-x-2 pl-2 pr-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 hover:bg-emerald-50/50 dark:hover:bg-slate-800/70 transition-colors text-slate-800 dark:text-slate-200"
                 >
-                  <div className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-600 text-white flex items-center justify-center text-xs font-bold shadow-sm">
                     {user?.name?.charAt(0) || 'U'}
                   </div>
                   <span className="text-sm font-medium hidden sm:inline-block max-w-[120px] truncate">
@@ -165,7 +165,7 @@ export const Navbar = () => {
                     <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800">
                       <p className="font-semibold text-slate-900 dark:text-white truncate">{user?.name}</p>
                       <p className="text-xs text-slate-500 truncate">{user?.email}</p>
-                      <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 uppercase">
+                      <span className="inline-block mt-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 uppercase">
                         {user?.role}
                       </span>
                     </div>
@@ -183,9 +183,9 @@ export const Navbar = () => {
                       <Link
                         to="/admin"
                         onClick={() => setProfileDropdownOpen(false)}
-                        className="flex items-center space-x-2 px-4 py-2 text-indigo-600 dark:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        className="flex items-center space-x-2 px-4 py-2 text-teal-700 dark:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                       >
-                        <ShieldAlert className="w-4 h-4" />
+                        <ShieldAlert className="w-4 h-4 text-teal-600" />
                         <span>Administrator Panel</span>
                       </Link>
                     )}
@@ -217,13 +217,13 @@ export const Navbar = () => {
               <div className="flex items-center space-x-2">
                 <Link
                   to="/login"
-                  className="px-3.5 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  className="px-3.5 py-1.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                 >
                   Sign In
                 </Link>
                 <Link
                   to="/register"
-                  className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors"
+                  className="px-4 py-1.5 text-sm font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-500/20 transition-colors"
                 >
                   Register
                 </Link>
@@ -272,7 +272,7 @@ export const Navbar = () => {
             <Link
               to="/admin"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-lg text-base font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40"
+              className="block px-3 py-2 rounded-lg text-base font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/40"
             >
               Admin Portal
             </Link>
@@ -291,14 +291,14 @@ export const Navbar = () => {
               <Link
                 to="/login"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 font-medium"
+                className="w-full text-center py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-200 font-medium hover:text-emerald-600"
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
                 onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center py-2 bg-blue-600 text-white rounded-lg font-semibold"
+                className="w-full text-center py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold shadow-sm shadow-emerald-500/20"
               >
                 Create Account
               </Link>

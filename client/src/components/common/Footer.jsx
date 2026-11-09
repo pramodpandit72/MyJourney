@@ -10,11 +10,11 @@ export const Footer = () => {
           {/* Brand Col */}
           <div className="space-y-4 md:col-span-1">
             <div className="flex items-center space-x-2">
-              <div className="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20">
                 <Bus className="w-5 h-5 text-white" />
               </div>
               <span className="font-bold text-xl tracking-tight text-white">
-                Yatra<span className="text-blue-400">Setu</span>
+                Yatra<span className="text-emerald-400">Setu</span>
               </span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
@@ -31,16 +31,16 @@ export const Footer = () => {
             <h4 className="text-white text-sm font-semibold uppercase tracking-wider mb-3">Quick Links</h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
-                <Link to="/" className="hover:text-blue-400 transition-colors">Home Portal</Link>
+                <Link to="/" className="hover:text-emerald-400 transition-colors">Home Portal</Link>
               </li>
               <li>
-                <Link to="/search" className="hover:text-blue-400 transition-colors">Search Bus Routes</Link>
+                <Link to="/search" className="hover:text-emerald-400 transition-colors">Search Bus Routes</Link>
               </li>
               <li>
-                <Link to="/my-bookings" className="hover:text-blue-400 transition-colors">Download Ticket / Check PNR</Link>
+                <Link to="/my-bookings" className="hover:text-emerald-400 transition-colors">Download Ticket / Check PNR</Link>
               </li>
               <li>
-                <Link to="/login" className="hover:text-blue-400 transition-colors">Staff & Operator Sign In</Link>
+                <Link to="/login" className="hover:text-emerald-400 transition-colors">Staff & Operator Sign In</Link>
               </li>
             </ul>
           </div>

@@ -96,7 +96,7 @@ export const AdminStopsPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+          <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest">
             Station Network
           </span>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
@@ -109,7 +109,7 @@ export const AdminStopsPage = () => {
 
         <button
           onClick={openCreateModal}
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-indigo-600/20"
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-emerald-600/20"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Stop</span>
@@ -118,7 +118,7 @@ export const AdminStopsPage = () => {
 
       {loading ? (
         <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-indigo-600" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading stops...</p>
         </div>
       ) : error ? (
@@ -143,7 +143,7 @@ export const AdminStopsPage = () => {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
                 {stops.map((s) => (
                   <tr key={s._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                    <td className="py-4 px-5 font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                    <td className="py-4 px-5 font-mono font-bold text-teal-600 dark:text-teal-400">
                       {s.stopCode}
                     </td>
                     <td className="py-4 px-5 font-bold text-slate-900 dark:text-white">
@@ -165,7 +165,7 @@ export const AdminStopsPage = () => {
                     <td className="py-4 px-5 text-right">
                       <button
                         onClick={() => openEditModal(s)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -208,7 +208,7 @@ export const AdminStopsPage = () => {
                   placeholder="e.g. Kashmere Gate ISBT"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
               </div>
 
@@ -223,7 +223,7 @@ export const AdminStopsPage = () => {
                     placeholder="e.g. Delhi"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -237,7 +237,7 @@ export const AdminStopsPage = () => {
                     placeholder="e.g. Delhi"
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -251,7 +251,7 @@ export const AdminStopsPage = () => {
                     placeholder="e.g. DEL-KG"
                     value={stopCode}
                     onChange={(e) => setStopCode(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -262,7 +262,7 @@ export const AdminStopsPage = () => {
                   <select
                     value={status}
                     onChange={(e) => setStatus(e.target.value)}
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="INACTIVE">INACTIVE</option>
@@ -281,7 +281,7 @@ export const AdminStopsPage = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20 disabled:opacity-50"
                 >
                   {submitting ? 'Saving...' : editingStop ? 'Update Stop' : 'Create Stop'}
                 </button>

@@ -35,14 +35,14 @@ import { AdminAuditLogsPage } from '../pages/admin/AdminAuditLogsPage.jsx';
 const NotFoundPage = () => (
   <div className="min-h-[70vh] flex items-center justify-center px-4">
     <div className="max-w-md w-full text-center space-y-4">
-      <h1 className="text-6xl font-black text-blue-600">404</h1>
+      <h1 className="text-6xl font-black bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">404</h1>
       <h2 className="text-xl font-bold text-slate-900 dark:text-white">Page Not Found</h2>
       <p className="text-xs text-slate-500">
         The requested URL path was not found on the YatraSetu portal.
       </p>
       <Link
         to="/"
-        className="inline-block px-5 py-2.5 rounded-xl bg-blue-600 text-white font-bold text-xs"
+        className="inline-block px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20"
       >
         Return to Home Portal
       </Link>

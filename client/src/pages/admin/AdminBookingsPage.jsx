@@ -66,7 +66,7 @@ export const AdminBookingsPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
             Ticketing Ledger
           </span>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
@@ -86,7 +86,7 @@ export const AdminBookingsPage = () => {
               placeholder="Search PNR..."
               value={pnrSearch}
               onChange={(e) => setPnrSearch(e.target.value)}
-              className="w-full h-10 pl-9 pr-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full h-10 pl-9 pr-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
 
@@ -96,7 +96,7 @@ export const AdminBookingsPage = () => {
               setStatusFilter(e.target.value);
               setPage(1);
             }}
-            className="h-10 px-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            className="h-10 px-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           >
             <option value="ALL">All Statuses</option>
             <option value="CONFIRMED">CONFIRMED</option>
@@ -107,7 +107,7 @@ export const AdminBookingsPage = () => {
 
       {loading ? (
         <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-indigo-600" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading bookings registry...</p>
         </div>
       ) : error ? (
@@ -135,7 +135,7 @@ export const AdminBookingsPage = () => {
                 {bookings.map((b) => (
                   <tr key={b._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                     <td className="py-4 px-5">
-                      <span className="font-mono font-black text-sm text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-200 dark:border-indigo-900">
+                      <span className="font-mono font-black text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-900">
                         {b.pnr}
                       </span>
                     </td>
@@ -170,7 +170,7 @@ export const AdminBookingsPage = () => {
                     <td className="py-4 px-5 text-right">
                       <Link
                         to={`/ticket/${b.pnr}`}
-                        className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-indigo-600 hover:text-white font-bold transition-all text-[11px]"
+                        className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white font-bold transition-all text-[11px]"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>Ticket</span>

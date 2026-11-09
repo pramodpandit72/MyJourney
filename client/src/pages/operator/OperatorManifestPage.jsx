@@ -217,7 +217,7 @@ export const OperatorManifestPage = () => {
                         <td className="py-3.5 px-4 text-slate-500">
                           {p.age} / {p.gender}
                         </td>
-                        <td className="py-3.5 px-4 font-mono font-bold text-blue-600 dark:text-blue-400">
+                        <td className="py-3.5 px-4 font-mono font-bold text-teal-600 dark:text-teal-400">
                           {p.pnr}
                         </td>
                         <td className="py-3.5 px-4 font-medium">{p.boardingStop}</td>

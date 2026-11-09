@@ -52,7 +52,7 @@ export const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="py-20 text-center space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto text-indigo-600" />
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
         <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
           Aggregating system statistics and operational trends...
         </p>
@@ -77,7 +77,7 @@ export const AdminDashboard = () => {
     <div className="space-y-8">
       {/* Title */}
       <div>
-        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
           Executive Operations
         </span>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
@@ -109,7 +109,7 @@ export const AdminDashboard = () => {
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
-          <span className="text-[10px] font-bold text-indigo-500 uppercase block">Total Revenue</span>
+          <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase block">Total Revenue</span>
           <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">₹{summary.totalRevenue}</p>
           <span className="text-[10px] text-slate-500">Simulated collections</span>
         </div>
@@ -121,8 +121,8 @@ export const AdminDashboard = () => {
         </div>
 
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm">
-          <span className="text-[10px] font-bold text-blue-500 uppercase block">Upcoming Trips</span>
-          <p className="text-2xl font-black text-blue-600 dark:text-blue-400 mt-1">{summary.upcomingTrips}</p>
+          <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase block">Upcoming Trips</span>
+          <p className="text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">{summary.upcomingTrips}</p>
           <span className="text-[10px] text-slate-500">Future scheduled runs</span>
         </div>
       </div>
@@ -130,7 +130,7 @@ export const AdminDashboard = () => {
       {/* Infrastructure Aggregate Pills */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-950 text-blue-600 flex items-center justify-center font-bold">
+          <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-600 flex items-center justify-center font-bold">
             <Building2 className="w-5 h-5" />
           </div>
           <div>
@@ -140,7 +140,7 @@ export const AdminDashboard = () => {
         </div>
 
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-950 text-indigo-600 flex items-center justify-center font-bold">
+          <div className="w-9 h-9 rounded-xl bg-teal-100 dark:bg-teal-950 text-teal-600 flex items-center justify-center font-bold">
             <Bus className="w-5 h-5" />
           </div>
           <div>
@@ -257,7 +257,7 @@ export const AdminDashboard = () => {
               <XAxis dataKey="route" stroke="#94a3b8" fontSize={10} tickFormatter={(val) => val.split('to')[0] || val} />
               <YAxis stroke="#94a3b8" fontSize={11} allowDecimals={false} />
               <Tooltip />
-              <Bar dataKey="bookings" fill="#4f46e5" radius={[6, 6, 0, 0]} name="Confirmed Bookings" />
+              <Bar dataKey="bookings" fill="#0d9488" radius={[6, 6, 0, 0]} name="Confirmed Bookings" />
             </BarChart>
           </ResponsiveContainer>
         </div>

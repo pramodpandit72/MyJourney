@@ -105,7 +105,7 @@ export const AdminOperatorsPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+          <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest">
             Fleet Administration
           </span>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
@@ -118,7 +118,7 @@ export const AdminOperatorsPage = () => {
 
         <button
           onClick={openCreateModal}
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-indigo-600/20"
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-emerald-600/20"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Operator</span>
@@ -127,7 +127,7 @@ export const AdminOperatorsPage = () => {
 
       {loading ? (
         <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-indigo-600" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading operators...</p>
         </div>
       ) : error ? (
@@ -154,7 +154,7 @@ export const AdminOperatorsPage = () => {
                   <tr key={op._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
                     <td className="py-4 px-5">
                       <p className="font-bold text-slate-900 dark:text-white">{op.name}</p>
-                      <span className="font-mono text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">
+                      <span className="font-mono text-[10px] text-teal-600 dark:text-teal-400 font-bold">
                         CODE: {op.operatorCode}
                       </span>
                     </td>
@@ -175,7 +175,7 @@ export const AdminOperatorsPage = () => {
                     <td className="py-4 px-5 text-right">
                       <button
                         onClick={() => openEditModal(op)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
@@ -219,7 +219,7 @@ export const AdminOperatorsPage = () => {
                     placeholder="e.g. Haryana State Transport (Haryana Roadways)"
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -233,7 +233,7 @@ export const AdminOperatorsPage = () => {
                     placeholder="e.g. HR-RDW"
                     value={formCode}
                     onChange={(e) => setFormCode(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -244,7 +244,7 @@ export const AdminOperatorsPage = () => {
                   <select
                     value={formStatus}
                     onChange={(e) => setFormStatus(e.target.value)}
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="INACTIVE">INACTIVE</option>
@@ -261,7 +261,7 @@ export const AdminOperatorsPage = () => {
                     placeholder="ops@operator.gov.in"
                     value={formEmail}
                     onChange={(e) => setFormEmail(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -275,7 +275,7 @@ export const AdminOperatorsPage = () => {
                     placeholder="+91-11-23860000"
                     value={formPhone}
                     onChange={(e) => setFormPhone(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -288,7 +288,7 @@ export const AdminOperatorsPage = () => {
                     placeholder="Central Bus Stand, Sector 17, Chandigarh"
                     value={formAddress}
                     onChange={(e) => setFormAddress(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -304,7 +304,7 @@ export const AdminOperatorsPage = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20 disabled:opacity-50"
                 >
                   {submitting ? 'Saving...' : editingOperator ? 'Update Operator' : 'Register Operator'}
                 </button>

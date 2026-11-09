@@ -101,7 +101,7 @@ export const OperatorOccupancyPage = () => {
                     <td className="py-4 px-5 text-center font-black text-emerald-600 dark:text-emerald-400">
                       {r.confirmedSeats}
                     </td>
-                    <td className="py-4 px-5 text-center font-bold text-blue-600 dark:text-blue-400">
+                    <td className="py-4 px-5 text-center font-bold text-teal-600 dark:text-teal-400">
                       {r.availableSeats}
                     </td>
                     <td className="py-4 px-5 text-right">

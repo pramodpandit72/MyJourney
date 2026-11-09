@@ -94,7 +94,7 @@ export const AdminCancellationPolicyPage = () => {
   return (
     <div className="max-w-4xl space-y-6">
       <div>
-        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
           Regulatory Rules
         </span>
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
@@ -107,7 +107,7 @@ export const AdminCancellationPolicyPage = () => {
 
       {loading ? (
         <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-indigo-600" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading policy rules...</p>
         </div>
       ) : (
@@ -136,7 +136,7 @@ export const AdminCancellationPolicyPage = () => {
                 required
                 value={policyName}
                 onChange={(e) => setPolicyName(e.target.value)}
-                className="w-full h-11 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full h-11 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
@@ -149,7 +149,7 @@ export const AdminCancellationPolicyPage = () => {
                 <button
                   type="button"
                   onClick={handleAddTier}
-                  className="inline-flex items-center space-x-1 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  className="inline-flex items-center space-x-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Refund Threshold</span>
@@ -205,7 +205,7 @@ export const AdminCancellationPolicyPage = () => {
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900 text-indigo-900 dark:text-indigo-200 text-xs flex items-start space-x-2.5">
+            <div className="p-4 rounded-2xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-900 text-teal-900 dark:text-teal-200 text-xs flex items-start space-x-2.5">
               <Info className="w-4 h-4 shrink-0 mt-0.5" />
               <p className="leading-relaxed">
                 Refund amounts are simulated and calculated deterministically in backend services on transaction commit. The server sorts tiers in descending order of hours remaining. If departure has already passed, cancellation is strictly blocked.
@@ -216,7 +216,7 @@ export const AdminCancellationPolicyPage = () => {
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center space-x-2 shadow-md shadow-indigo-600/20 disabled:opacity-50"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center space-x-2 shadow-md shadow-emerald-600/20 disabled:opacity-50"
               >
                 {saving ? (
                   <>

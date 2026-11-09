@@ -49,12 +49,12 @@ export const AdminLayout = () => {
         <div className="space-y-6">
           {/* Brand */}
           <Link to="/" className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20">
               <ShieldAlert className="w-5 h-5 text-white" />
             </div>
             <div>
               <span className="font-extrabold text-lg text-white">YatraSetu</span>
-              <span className="block text-[10px] text-indigo-400 font-bold uppercase tracking-wider">
+              <span className="block text-[10px] text-teal-400 font-bold uppercase tracking-wider">
                 Admin Console
               </span>
             </div>
@@ -64,7 +64,7 @@ export const AdminLayout = () => {
           <div className="p-3 rounded-xl bg-slate-800/80 border border-slate-700/60">
             <p className="text-xs font-bold text-white truncate">{user?.name}</p>
             <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
-            <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 font-bold border border-indigo-800">
+            <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-bold border border-emerald-800">
               System Administrator
             </span>
           </div>
@@ -80,7 +80,7 @@ export const AdminLayout = () => {
                   to={item.path}
                   className={`flex items-center space-x-3 px-3 py-2 rounded-xl text-xs font-bold transition-all ${
                     isActive
-                      ? 'bg-indigo-600 text-white shadow-sm'
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-sm shadow-emerald-500/20'
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
                 >

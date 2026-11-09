@@ -263,7 +263,7 @@ export const SearchResultsPage = () => {
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-5">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
               <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
-                <Filter className="w-4 h-4 text-blue-600" />
+                <Filter className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 <span>Filters & Sorting</span>
               </h3>
               <button
@@ -274,7 +274,7 @@ export const SearchResultsPage = () => {
                   setSortBy('departureAt');
                   setSortOrder('asc');
                 }}
-                className="text-xs text-blue-600 dark:text-blue-400 hover:underline font-semibold"
+                className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
               >
                 Reset
               </button>
@@ -288,7 +288,7 @@ export const SearchResultsPage = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
                 <option value="departureAt">Departure Time</option>
                 <option value="fare">Fare (Low to High)</option>
@@ -314,7 +314,7 @@ export const SearchResultsPage = () => {
                     onClick={() => setSelectedTimeOfDay(item.id)}
                     className={`py-2 px-2.5 rounded-lg font-medium text-center transition-all ${
                       selectedTimeOfDay === item.id
-                        ? 'bg-blue-600 text-white font-bold'
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-sm shadow-emerald-600/20'
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
                     }`}
                   >
@@ -332,7 +332,7 @@ export const SearchResultsPage = () => {
               <select
                 value={selectedBusType}
                 onChange={(e) => setSelectedBusType(e.target.value)}
-                className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
                 <option value="ALL">All Categories</option>
                 <option value="Volvo Multi-Axle AC (2+2)">Volvo Multi-Axle AC</option>
@@ -346,7 +346,7 @@ export const SearchResultsPage = () => {
             <div>
               <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">
                 <span>Max Fare</span>
-                <span className="text-blue-600 font-bold">₹{maxFare}</span>
+                <span className="text-emerald-600 dark:text-emerald-400 font-bold">₹{maxFare}</span>
               </div>
               <input
                 type="range"
@@ -355,7 +355,7 @@ export const SearchResultsPage = () => {
                 step="50"
                 value={maxFare}
                 onChange={(e) => setMaxFare(Number(e.target.value))}
-                className="w-full accent-blue-600 cursor-pointer"
+                className="w-full accent-emerald-600 cursor-pointer"
               />
             </div>
           </div>
@@ -375,7 +375,7 @@ export const SearchResultsPage = () => {
 
           {loading ? (
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-3">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
+              <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
               <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
                 Searching real-time schedules from transport network...
               </p>
@@ -401,7 +401,7 @@ export const SearchResultsPage = () => {
               return (
                 <div
                   key={trip._id}
-                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all space-y-4"
+                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md hover:border-emerald-500/30 transition-all space-y-4"
                 >
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
                     <div>
@@ -409,7 +409,7 @@ export const SearchResultsPage = () => {
                         <span className="font-extrabold text-slate-900 dark:text-white text-base">
                           {trip.operator?.name}
                         </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold uppercase">
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 font-bold uppercase">
                           {trip.operator?.operatorCode}
                         </span>
                       </div>
@@ -431,7 +431,7 @@ export const SearchResultsPage = () => {
                         className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                           isSoldOut
                             ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-                            : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm shadow-blue-500/20'
+                            : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-sm shadow-emerald-500/20'
                         }`}
                       >
                         {isSoldOut ? 'Sold Out' : 'Select Seats'}
@@ -455,11 +455,11 @@ export const SearchResultsPage = () => {
                         {trip.duration}
                       </span>
                       <div className="flex items-center space-x-2 text-slate-300 dark:text-slate-700">
-                        <div className="w-2 h-2 rounded-full bg-blue-600"></div>
+                        <div className="w-2 h-2 rounded-full bg-emerald-600"></div>
                         <div className="h-0.5 flex-1 bg-current"></div>
-                        <Bus className="w-4 h-4 text-blue-600" />
+                        <Bus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                         <div className="h-0.5 flex-1 bg-current"></div>
-                        <div className="w-2 h-2 rounded-full bg-slate-400"></div>
+                        <div className="w-2 h-2 rounded-full bg-teal-500"></div>
                       </div>
                       <span className="text-[10px] text-slate-400 mt-1 block">
                         {trip.route?.totalDistance} km Route
@@ -544,7 +544,7 @@ export const SearchResultsPage = () => {
             <div>
               {loadingSeats ? (
                 <div className="py-12 text-center space-y-2">
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-blue-600" />
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-emerald-600" />
                   <p className="text-xs text-slate-500">Checking seat inventory availability...</p>
                 </div>
               ) : seatLayoutData ? (
@@ -563,7 +563,7 @@ export const SearchResultsPage = () => {
               <form onSubmit={handleConfirmBooking} className="space-y-6 pt-4 border-t border-slate-200 dark:border-slate-800">
                 <div>
                   <h4 className="font-bold text-slate-900 dark:text-white text-sm mb-1 flex items-center space-x-1.5">
-                    <UserCheck className="w-4 h-4 text-blue-600" />
+                    <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     <span>Passenger Information ({selectedSeats.length} Selected)</span>
                   </h4>
                   <p className="text-xs text-slate-500">
@@ -578,7 +578,7 @@ export const SearchResultsPage = () => {
                       className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-blue-600 dark:text-blue-400">
+                        <span className="font-bold text-xs text-emerald-600 dark:text-emerald-400">
                           Seat #{p.seatNumber} Passenger
                         </span>
                       </div>
@@ -594,7 +594,7 @@ export const SearchResultsPage = () => {
                             placeholder="e.g. Ramesh Kumar"
                             value={p.name}
                             onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
-                            className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                           />
                         </div>
 
@@ -610,7 +610,7 @@ export const SearchResultsPage = () => {
                             placeholder="Age"
                             value={p.age}
                             onChange={(e) => handlePassengerChange(idx, 'age', e.target.value)}
-                            className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                           />
                         </div>
 
@@ -621,7 +621,7 @@ export const SearchResultsPage = () => {
                           <select
                             value={p.gender}
                             onChange={(e) => handlePassengerChange(idx, 'gender', e.target.value)}
-                            className="w-full h-10 px-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                            className="w-full h-10 px-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                           >
                             <option value="MALE">Male</option>
                             <option value="FEMALE">Female</option>
@@ -634,12 +634,12 @@ export const SearchResultsPage = () => {
                 </div>
 
                 {/* Simulated Payment Notice */}
-                <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900 text-blue-900 dark:text-blue-200 text-xs space-y-1">
+                <div className="p-4 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-900 text-teal-900 dark:text-teal-200 text-xs space-y-1">
                   <div className="flex items-center space-x-1.5 font-bold">
-                    <ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                     <span>Simulated Academic Checkout Notice</span>
                   </div>
-                  <p className="text-[11px] text-blue-800 dark:text-blue-300">
+                  <p className="text-[11px] text-teal-800 dark:text-teal-300">
                     This is an independent academic demonstration portal. No real payment gateway is integrated. Clicking Confirm simulates successful ticket payment and generates an authentic PNR.
                   </p>
                 </div>

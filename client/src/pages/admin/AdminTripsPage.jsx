@@ -131,7 +131,7 @@ export const AdminTripsPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
             Dispatch Center
           </span>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
@@ -144,7 +144,7 @@ export const AdminTripsPage = () => {
 
         <button
           onClick={openCreateModal}
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-indigo-600/20"
+          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-emerald-600/20"
         >
           <Plus className="w-4 h-4" />
           <span>Schedule New Trip</span>
@@ -153,7 +153,7 @@ export const AdminTripsPage = () => {
 
       {loading ? (
         <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-indigo-600" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading trips...</p>
         </div>
       ) : error ? (
@@ -249,7 +249,7 @@ export const AdminTripsPage = () => {
                   value={routeId}
                   onChange={(e) => setRouteId(e.target.value)}
                   required
-                  className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
                   {routes.map((r) => (
                     <option key={r._id} value={r._id}>
@@ -268,7 +268,7 @@ export const AdminTripsPage = () => {
                     value={busId}
                     onChange={(e) => setBusId(e.target.value)}
                     required
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
                     {buses.map((b) => (
                       <option key={b._id} value={b._id}>
@@ -286,7 +286,7 @@ export const AdminTripsPage = () => {
                     value={operatorId}
                     onChange={(e) => setOperatorId(e.target.value)}
                     required
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   >
                     {operators.map((op) => (
                       <option key={op._id} value={op._id}>
@@ -305,7 +305,7 @@ export const AdminTripsPage = () => {
                     required
                     value={departureAt}
                     onChange={(e) => setDepartureAt(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -318,7 +318,7 @@ export const AdminTripsPage = () => {
                     required
                     value={arrivalAt}
                     onChange={(e) => setArrivalAt(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -332,7 +332,7 @@ export const AdminTripsPage = () => {
                     min={1}
                     value={baseFare}
                     onChange={(e) => setBaseFare(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
                 </div>
               </div>
@@ -348,7 +348,7 @@ export const AdminTripsPage = () => {
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 disabled:opacity-50"
                 >
                   {submitting ? 'Scheduling...' : 'Schedule Trip & Initialize Seats'}
                 </button>

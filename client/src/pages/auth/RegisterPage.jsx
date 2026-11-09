@@ -39,7 +39,7 @@ export const RegisterPage = () => {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
       <div className="max-w-md w-full space-y-6">
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-800 flex items-center justify-center text-white mx-auto shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-cyan-600 flex items-center justify-center text-white mx-auto shadow-md shadow-emerald-500/20">
             <Bus className="w-6 h-6" />
           </div>
           <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
@@ -71,7 +71,7 @@ export const RegisterPage = () => {
                   placeholder="e.g. Vikram Sharma"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -88,7 +88,7 @@ export const RegisterPage = () => {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -104,7 +104,7 @@ export const RegisterPage = () => {
                   placeholder="+91-9876543210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -122,7 +122,7 @@ export const RegisterPage = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -130,7 +130,7 @@ export const RegisterPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/25 flex items-center justify-center space-x-2 transition-all cursor-pointer disabled:opacity-50"
+              className="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm rounded-xl shadow-md shadow-emerald-500/25 flex items-center justify-center space-x-2 transition-all cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -142,7 +142,7 @@ export const RegisterPage = () => {
 
           <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-500">
             Already have an account?{' '}
-            <Link to="/login" className="font-bold text-blue-600 dark:text-blue-400 hover:underline">
+            <Link to="/login" className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
               Sign In
             </Link>
           </div>

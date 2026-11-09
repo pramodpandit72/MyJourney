@@ -95,14 +95,14 @@ export const BusSearchForm = ({ initialValues = {}, className = '' }) => {
         {/* From Stop */}
         <div className="md:col-span-3">
           <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
-            <MapPin className="w-3.5 h-3.5 text-blue-600" />
+            <MapPin className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>Leaving From</span>
           </label>
           <select
             value={fromStop}
             onChange={(e) => setFromStop(e.target.value)}
             disabled={loadingStops}
-            className="w-full h-11 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            className="w-full h-11 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
           >
             {loadingStops ? (
               <option>Loading stops...</option>
@@ -122,7 +122,7 @@ export const BusSearchForm = ({ initialValues = {}, className = '' }) => {
             type="button"
             onClick={handleSwap}
             aria-label="Swap origin and destination"
-            className="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors border border-slate-200 dark:border-slate-700"
+            className="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-950/60 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-colors border border-slate-200 dark:border-slate-700"
           >
             <ArrowLeftRight className="w-4 h-4" />
           </button>
@@ -131,14 +131,14 @@ export const BusSearchForm = ({ initialValues = {}, className = '' }) => {
         {/* To Stop */}
         <div className="md:col-span-3">
           <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
-            <MapPin className="w-3.5 h-3.5 text-rose-500" />
+            <MapPin className="w-3.5 h-3.5 text-teal-500" />
             <span>Going To</span>
           </label>
           <select
             value={toStop}
             onChange={(e) => setToStop(e.target.value)}
             disabled={loadingStops}
-            className="w-full h-11 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            className="w-full h-11 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
           >
             {loadingStops ? (
               <option>Loading stops...</option>
@@ -155,7 +155,7 @@ export const BusSearchForm = ({ initialValues = {}, className = '' }) => {
         {/* Travel Date */}
         <div className="md:col-span-2">
           <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
-            <Calendar className="w-3.5 h-3.5 text-blue-600" />
+            <Calendar className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>Travel Date</span>
           </label>
           <input
@@ -163,20 +163,20 @@ export const BusSearchForm = ({ initialValues = {}, className = '' }) => {
             value={travelDate}
             min={getTodayString()}
             onChange={(e) => setTravelDate(e.target.value)}
-            className="w-full h-11 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            className="w-full h-11 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
           />
         </div>
 
         {/* Passengers */}
         <div className="md:col-span-1">
           <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5 flex items-center space-x-1">
-            <Users className="w-3.5 h-3.5 text-blue-600" />
+            <Users className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
             <span>Seats</span>
           </label>
           <select
             value={passengers}
             onChange={(e) => setPassengers(Number(e.target.value))}
-            className="w-full h-11 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+            className="w-full h-11 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
           >
             {[1, 2, 3, 4, 5, 6].map((num) => (
               <option key={num} value={num}>
@@ -191,7 +191,7 @@ export const BusSearchForm = ({ initialValues = {}, className = '' }) => {
           <button
             type="submit"
             disabled={loadingStops}
-            className="w-full h-11 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/25 flex items-center justify-center space-x-2 transition-all cursor-pointer"
+            className="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 active:from-emerald-800 active:to-teal-800 text-white font-bold text-sm rounded-xl shadow-md shadow-emerald-500/25 flex items-center justify-center space-x-2 transition-all cursor-pointer"
           >
             {loadingStops ? (
               <Loader2 className="w-4 h-4 animate-spin" />

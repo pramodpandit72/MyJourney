@@ -74,7 +74,7 @@ export const OperatorDashboard = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-2">
           <div className="flex justify-between items-center text-slate-500">
             <span className="text-xs font-bold uppercase tracking-wider">Assigned Trips</span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600">
+            <div className="w-8 h-8 rounded-lg bg-teal-50 dark:bg-teal-950/50 flex items-center justify-center text-teal-600">
               <Bus className="w-4 h-4" />
             </div>
           </div>
@@ -113,7 +113,7 @@ export const OperatorDashboard = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-2">
           <div className="flex justify-between items-center text-slate-500">
             <span className="text-xs font-bold uppercase tracking-wider">Seat Occupancy</span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950/50 flex items-center justify-center text-indigo-600">
+            <div className="w-8 h-8 rounded-lg bg-cyan-50 dark:bg-cyan-950/50 flex items-center justify-center text-cyan-600">
               <Percent className="w-4 h-4" />
             </div>
           </div>
@@ -142,7 +142,7 @@ export const OperatorDashboard = () => {
           </div>
           <Link
             to="/operator/manifests"
-            className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs self-start transition-all"
+            className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs self-start transition-all shadow-md shadow-emerald-600/20"
           >
             <span>Open Passenger Manifest</span>
             <ArrowRight className="w-4 h-4" />
@@ -151,7 +151,7 @@ export const OperatorDashboard = () => {
 
         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col justify-between space-y-4">
           <div className="space-y-2">
-            <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-xl bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 flex items-center justify-center font-bold">
               <Percent className="w-5 h-5" />
             </div>
             <h3 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -163,7 +163,7 @@ export const OperatorDashboard = () => {
           </div>
           <Link
             to="/operator/occupancy"
-            className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs self-start transition-all"
+            className="inline-flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white font-bold text-xs self-start transition-all shadow-md shadow-teal-600/20"
           >
             <span>View Occupancy Report</span>
             <ArrowRight className="w-4 h-4" />

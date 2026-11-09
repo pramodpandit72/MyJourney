@@ -40,11 +40,11 @@ export const SeatMap = ({
       {/* Legend */}
       <div className="flex flex-wrap items-center justify-center gap-4 py-2 px-4 mb-6 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 text-xs">
         <div className="flex items-center space-x-2">
-          <div className="w-5 h-5 rounded border-2 border-blue-600 bg-white dark:bg-slate-900"></div>
+          <div className="w-5 h-5 rounded border-2 border-emerald-500 bg-white dark:bg-slate-900"></div>
           <span className="text-slate-700 dark:text-slate-300 font-medium">Available</span>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-5 h-5 rounded bg-blue-600 text-white flex items-center justify-center">
+          <div className="w-5 h-5 rounded bg-emerald-600 text-white flex items-center justify-center shadow-sm shadow-emerald-500/30">
             <Check className="w-3.5 h-3.5" />
           </div>
           <span className="text-slate-700 dark:text-slate-300 font-medium">Selected</span>
@@ -90,8 +90,8 @@ export const SeatMap = ({
                           isBooked
                             ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                             : isSelected
-                            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30 scale-105'
-                            : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-2 border-blue-500/40 hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40'
+                            ? 'bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/30 scale-105'
+                            : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-2 border-emerald-500/40 hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
                         }`}
                       >
                         <Armchair className="w-3.5 h-3.5 mb-0.5 opacity-80" />
@@ -123,8 +123,8 @@ export const SeatMap = ({
                           isBooked
                             ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-600 cursor-not-allowed'
                             : isSelected
-                            ? 'bg-blue-600 text-white shadow-md shadow-blue-500/30 scale-105'
-                            : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-2 border-blue-500/40 hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40'
+                            ? 'bg-gradient-to-tr from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-500/30 scale-105'
+                            : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-2 border-emerald-500/40 hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
                         }`}
                       >
                         <Armchair className="w-3.5 h-3.5 mb-0.5 opacity-80" />
@@ -148,7 +148,7 @@ export const SeatMap = ({
               selectedSeats.map((s) => (
                 <span
                   key={s}
-                  className="px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300 font-bold text-xs"
+                  className="px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 font-bold text-xs"
                 >
                   {s}
                 </span>

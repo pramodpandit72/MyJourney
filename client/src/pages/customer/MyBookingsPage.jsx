@@ -73,7 +73,7 @@ export const MyBookingsPage = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">
+          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
             Passenger Portal
           </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
@@ -86,7 +86,7 @@ export const MyBookingsPage = () => {
 
         <Link
           to="/search"
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm"
+          className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm shadow-emerald-500/20"
         >
           <Search className="w-3.5 h-3.5" />
           <span>Book New Journey</span>
@@ -106,7 +106,7 @@ export const MyBookingsPage = () => {
             onClick={() => setFilterStatus(tab.id)}
             className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors ${
               filterStatus === tab.id
-                ? 'bg-blue-600 text-white font-bold'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-sm shadow-emerald-500/20'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
@@ -118,7 +118,7 @@ export const MyBookingsPage = () => {
       {/* Bookings List */}
       {loading ? (
         <div className="py-16 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
           <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading bookings from database...</p>
         </div>
       ) : error ? (
@@ -128,7 +128,7 @@ export const MyBookingsPage = () => {
         </div>
       ) : filteredBookings.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-blue-50 dark:bg-blue-950/50 flex items-center justify-center text-blue-600 mx-auto">
+          <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 mx-auto">
             <Ticket className="w-7 h-7" />
           </div>
           <div>
@@ -139,7 +139,7 @@ export const MyBookingsPage = () => {
           </div>
           <Link
             to="/search"
-            className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm"
+            className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-500/20"
           >
             <span>Search Buses Now</span>
             <ChevronRight className="w-4 h-4" />
@@ -154,12 +154,12 @@ export const MyBookingsPage = () => {
             return (
               <div
                 key={b._id}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md hover:border-emerald-500/30 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
               >
                 {/* Left details */}
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono font-black text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded border border-blue-200 dark:border-blue-900">
+                    <span className="font-mono font-black text-sm text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-900">
                       PNR: {b.pnr}
                     </span>
                     <span
@@ -210,7 +210,7 @@ export const MyBookingsPage = () => {
 
                   <Link
                     to={`/ticket/${b.pnr}`}
-                    className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-blue-600 hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-colors flex items-center space-x-1 shadow-sm"
+                    className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-colors flex items-center space-x-1 shadow-sm"
                   >
                     <span>View Ticket</span>
                     <ChevronRight className="w-4 h-4" />

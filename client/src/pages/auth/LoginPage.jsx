@@ -50,7 +50,7 @@ export const LoginPage = () => {
       <div className="max-w-md w-full space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-800 flex items-center justify-center text-white mx-auto shadow-md">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-cyan-600 flex items-center justify-center text-white mx-auto shadow-md shadow-emerald-500/20">
             <Bus className="w-6 h-6" />
           </div>
           <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
@@ -64,25 +64,25 @@ export const LoginPage = () => {
         {/* Demo Fast-Login Pill Box */}
         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2.5">
           <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center space-x-1">
-            <KeyRound className="w-3.5 h-3.5 text-blue-600" />
+            <KeyRound className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>Placement Reviewer One-Click Demo Credentials:</span>
           </p>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <button
               type="button"
               onClick={() => setDemoCredentials('customer@yatrasetu.gov.in', 'CUSTOMER')}
-              className="p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-700 text-left transition-all"
+              className="p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-slate-700 text-left transition-all"
             >
-              <span className="font-bold block text-blue-600 dark:text-blue-400">👤 Passenger</span>
+              <span className="font-bold block text-emerald-600 dark:text-emerald-400">👤 Passenger</span>
               <span className="text-[10px] text-slate-400 truncate block">customer@yatrasetu.gov.in</span>
             </button>
 
             <button
               type="button"
               onClick={() => setDemoCredentials('admin@yatrasetu.gov.in', 'ADMIN')}
-              className="p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-700 text-left transition-all"
+              className="p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950/40 border border-slate-200 dark:border-slate-700 text-left transition-all"
             >
-              <span className="font-bold block text-indigo-600 dark:text-indigo-400">🛡️ Admin</span>
+              <span className="font-bold block text-teal-700 dark:text-teal-400">🛡️ Admin</span>
               <span className="text-[10px] text-slate-400 truncate block">admin@yatrasetu.gov.in</span>
             </button>
 
@@ -128,7 +128,7 @@ export const LoginPage = () => {
                   placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -145,7 +145,7 @@ export const LoginPage = () => {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all"
+                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
                 />
               </div>
             </div>
@@ -153,7 +153,7 @@ export const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-md shadow-blue-500/25 flex items-center justify-center space-x-2 transition-all cursor-pointer disabled:opacity-50"
+              className="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm rounded-xl shadow-md shadow-emerald-500/25 flex items-center justify-center space-x-2 transition-all cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -165,7 +165,7 @@ export const LoginPage = () => {
 
           <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-500">
             Don't have an account yet?{' '}
-            <Link to="/register" className="font-bold text-blue-600 dark:text-blue-400 hover:underline">
+            <Link to="/register" className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
               Create an account
             </Link>
           </div>

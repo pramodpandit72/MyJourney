@@ -92,7 +92,7 @@ export const TicketPage = () => {
   if (loading) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
         <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Retrieving digital ticket...</p>
       </div>
     );
@@ -108,7 +108,7 @@ export const TicketPage = () => {
         <p className="text-xs text-slate-500 max-w-sm mx-auto">{error || 'No booking records found for PNR ' + pnr}</p>
         <Link
           to="/"
-          className="inline-flex items-center space-x-1 px-4 py-2 rounded-xl bg-blue-600 text-white text-xs font-bold"
+          className="inline-flex items-center space-x-1 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-500/20"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Home Portal</span>
@@ -148,7 +148,7 @@ export const TicketPage = () => {
       <div className="flex flex-wrap justify-between items-center gap-3 print:hidden">
         <Link
           to="/my-bookings"
-          className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-blue-600"
+          className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-emerald-600"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to My Bookings</span>
@@ -166,7 +166,7 @@ export const TicketPage = () => {
 
           <button
             onClick={handlePrint}
-            className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center space-x-1.5 shadow-sm transition-all"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold flex items-center space-x-1.5 shadow-sm shadow-emerald-500/20 transition-all cursor-pointer"
           >
             <Printer className="w-4 h-4" />
             <span>Print E-Ticket</span>
@@ -182,15 +182,15 @@ export const TicketPage = () => {
         {/* Ticket Header */}
         <div className="bg-slate-900 text-white p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-800">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20">
               <Bus className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
                 <span className="font-black text-2xl tracking-tight text-white">
-                  Yatra<span className="text-blue-400">Setu</span>
+                  Yatra<span className="text-emerald-400">Setu</span>
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-blue-900 text-blue-200">
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/60">
                   E-Ticket
                 </span>
               </div>
@@ -200,7 +200,7 @@ export const TicketPage = () => {
 
           <div className="sm:text-right">
             <span className="text-xs text-slate-400 uppercase font-mono block">Booking Reference / PNR</span>
-            <span className="text-2xl font-black font-mono tracking-widest text-blue-400">
+            <span className="text-2xl font-black font-mono tracking-widest text-teal-400">
               {booking.pnr}
             </span>
             <div className="mt-1">
@@ -306,7 +306,7 @@ export const TicketPage = () => {
                       <td className="py-3 px-4 font-bold">{p.name}</td>
                       <td className="py-3 px-4 text-slate-500">{p.age} yrs / {p.gender}</td>
                       <td className="py-3 px-4">
-                        <span className="px-2 py-0.5 rounded font-black bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
+                        <span className="px-2 py-0.5 rounded font-black bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50">
                           {p.seatNumber}
                         </span>
                       </td>
@@ -342,7 +342,7 @@ export const TicketPage = () => {
               </div>
               <div className="flex justify-between space-x-6 text-base font-extrabold text-slate-900 dark:text-white pt-1 border-t border-slate-200 dark:border-slate-700">
                 <span>Total Fare Paid:</span>
-                <span className="font-mono text-blue-600 dark:text-blue-400">₹{booking.totalAmount}</span>
+                <span className="font-mono text-emerald-600 dark:text-emerald-400">₹{booking.totalAmount}</span>
               </div>
             </div>
           </div>

@@ -11,7 +11,7 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
           <p className="text-sm font-semibold text-slate-500">Verifying security credentials...</p>
         </div>
       </div>
@@ -35,7 +35,7 @@ export const ProtectedRoute = ({ children, allowedRoles = [] }) => {
           </p>
           <button
             onClick={() => window.history.back()}
-            className="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs shadow-sm hover:bg-blue-700"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20"
           >
             Go Back
           </button>
