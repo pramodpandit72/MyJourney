@@ -31,7 +31,8 @@ export const getStops = async (req, res, next) => {
 export const searchTrips = async (req, res, next) => {
   try {
     const {
-      originStopId,
+      originStopId: origId,
+      sourceStopId,
       destinationStopId,
       travelDate,
       busType,
@@ -40,17 +41,20 @@ export const searchTrips = async (req, res, next) => {
       order = 'asc'
     } = req.query;
 
-    if (!travelDate) {
-      return sendError(res, 'Travel date is required (YYYY-MM-DD)', 400, 'DATE_REQUIRED');
-    }
-
-    const { startOfDay, endOfDay } = getDayRangeInAsiaKolkata(travelDate);
+    const originStopId = origId || sourceStopId;
 
     // Build base trip query
     const tripQuery = {
-      status: 'SCHEDULED',
-      departureAt: { $gte: startOfDay, $lte: endOfDay }
+      status: 'SCHEDULED'
     };
+
+    if (travelDate) {
+      const { startOfDay, endOfDay } = getDayRangeInAsiaKolkata(travelDate);
+      tripQuery.departureAt = { $gte: startOfDay, $lte: endOfDay };
+    } else {
+      // Default to upcoming trips from today onwards
+      tripQuery.departureAt = { $gte: new Date(Date.now() - 24 * 3600 * 1000) };
+    }
 
     if (operatorId && mongoose.Types.ObjectId.isValid(operatorId)) {
       tripQuery.operatorId = operatorId;

@@ -115,7 +115,7 @@ async function verifyAllAPIs() {
       const res = await request(app)
         .post('/api/v1/auth/login')
         .send({
-          email: 'operator1@yatrasetu.in',
+          email: 'operator.delhi@yatrasetu.gov.in',
           password: 'Password@123'
         });
       operatorToken = res.body.data?.token || '';
@@ -126,7 +126,7 @@ async function verifyAllAPIs() {
       const res = await request(app)
         .post('/api/v1/auth/login')
         .send({
-          email: 'admin@yatrasetu.in',
+          email: 'admin@yatrasetu.gov.in',
           password: 'Password@123'
         });
       adminToken = res.body.data?.token || '';
@@ -278,7 +278,7 @@ async function verifyAllAPIs() {
     }
 
     // Find an operator-assigned trip for manifest test
-    const opTrip = await Trip.findOne({ operatorId });
+    const opTrip = operatorId ? await Trip.findOne({ operatorId }) : await Trip.findOne();
     const opTripId = opTrip ? opTrip._id.toString() : testTripId;
 
     {
@@ -308,7 +308,7 @@ async function verifyAllAPIs() {
       const res = await request(app)
         .get('/api/v1/admin/dashboard')
         .set('Authorization', `Bearer ${adminToken}`);
-      recordResult('Admin Dashboard Analytics', 'GET', '/api/v1/admin/dashboard', res.status, 200, res.status === 200 && !!res.body.data?.overview);
+      recordResult('Admin Dashboard Analytics', 'GET', '/api/v1/admin/dashboard', res.status, 200, res.status === 200 && !!res.body.data?.summary);
     }
     {
       const res = await request(app)
