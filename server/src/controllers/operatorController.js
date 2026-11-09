@@ -2,12 +2,26 @@ import mongoose from 'mongoose';
 import Trip from '../models/Trip.js';
 import Booking from '../models/Booking.js';
 import SeatInventory from '../models/SeatInventory.js';
+import Operator from '../models/Operator.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { BOOKING_STATUS, SEAT_STATUS } from '../config/constants.js';
 
+// Helper to resolve operator ID for current user (operator or admin preview)
+const resolveOperatorId = async (req) => {
+  if (req.user.operatorId) return req.user.operatorId;
+  if (req.user.role === 'ADMIN') {
+    if (req.query.operatorId && mongoose.Types.ObjectId.isValid(req.query.operatorId)) {
+      return req.query.operatorId;
+    }
+    const firstOp = await Operator.findOne();
+    return firstOp ? firstOp._id : null;
+  }
+  return null;
+};
+
 export const getOperatorDashboard = async (req, res, next) => {
   try {
-    const operatorId = req.user.operatorId;
+    const operatorId = await resolveOperatorId(req);
     if (!operatorId) {
       return sendError(res, 'No operator associated with this account.', 403, 'NO_OPERATOR_ASSIGNED');
     }
@@ -76,7 +90,7 @@ export const getOperatorDashboard = async (req, res, next) => {
 
 export const getOperatorTrips = async (req, res, next) => {
   try {
-    const operatorId = req.user.operatorId;
+    const operatorId = await resolveOperatorId(req);
     if (!operatorId) {
       return sendError(res, 'No operator assigned to this account', 403, 'NO_OPERATOR_ASSIGNED');
     }
@@ -203,7 +217,7 @@ export const getPassengerManifest = async (req, res, next) => {
 
 export const getOccupancyReport = async (req, res, next) => {
   try {
-    const operatorId = req.user.operatorId;
+    const operatorId = await resolveOperatorId(req);
     if (!operatorId) {
       return sendError(res, 'No operator assigned', 403, 'NO_OPERATOR_ASSIGNED');
     }
@@ -241,4 +255,39 @@ export const getOccupancyReport = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getOperatorBookings = async (req, res, next) => {
+  try {
+    const operatorId = await resolveOperatorId(req);
+    if (!operatorId) {
+      return sendError(res, 'No operator assigned', 403, 'NO_OPERATOR_ASSIGNED');
+    }
+
+    const assignedTrips = await Trip.find({ operatorId });
+    const tripIds = assignedTrips.map(t => t._id);
+
+    const { status, pnr } = req.query;
+    const filter = { tripId: { $in: tripIds } };
+    if (status && status !== 'ALL') filter.status = status;
+    if (pnr) filter.pnr = { $regex: pnr.trim(), $options: 'i' };
+
+    const bookings = await Booking.find(filter)
+      .populate('userId', 'name email phone')
+      .populate('boardingStopId', 'name city')
+      .populate('droppingStopId', 'name city')
+      .populate({
+        path: 'tripId',
+        populate: [
+          { path: 'routeId', select: 'routeName routeCode' },
+          { path: 'busId', select: 'registrationNumber busType' }
+        ]
+      })
+      .sort({ bookingDate: -1 });
+
+    return sendSuccess(res, { bookings, count: bookings.length });
+  } catch (err) {
+    next(err);
+  }
+};
+
 

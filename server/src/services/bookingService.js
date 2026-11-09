@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Booking from '../models/Booking.js';
+import MyJourney from '../models/MyJourney.js';
 import SeatInventory from '../models/SeatInventory.js';
 import Trip from '../models/Trip.js';
 import CancellationPolicy from '../models/CancellationPolicy.js';
@@ -198,6 +199,39 @@ export const createBooking = async ({
 
     await newBooking.save(sessionOption);
 
+    // Also persist journey record in myjourneycollection
+    try {
+      await MyJourney.create([{
+        type: 'BOOKING',
+        pnr,
+        bookingId: newBooking._id,
+        tripId,
+        routeName: trip.routeId?.routeName || '',
+        boardingStop: routeValidation.boardingStop?.name || '',
+        droppingStop: routeValidation.droppingStop?.name || '',
+        departureAt: trip.departureAt,
+        arrivalAt: trip.arrivalAt,
+        busType: trip.busId?.busType || '',
+        busRegistration: trip.busId?.registrationNumber || '',
+        operatorName: trip.operatorId?.name || '',
+        passengers,
+        seatNumbers,
+        totalAmount: fareResult.totalAmount,
+        fareBreakdown: {
+          perPassengerFare: fareResult.perPassengerFare,
+          baseFareTotal: fareResult.baseFareTotal,
+          gstAmount: fareResult.gstAmount,
+          serviceFee: fareResult.serviceFee
+        },
+        status: BOOKING_STATUS.CONFIRMED,
+        paymentStatus: PAYMENT_STATUS.SIMULATED_SUCCESS,
+        bookingDate: new Date()
+      }], sessionOption);
+    } catch (e) {
+      // In case session or collection creation handles separately
+      console.warn('Note: myjourneycollection sync:', e.message);
+    }
+
     // 10. Link bookingId to claimed seats
     await SeatInventory.updateMany(
       {
@@ -357,6 +391,24 @@ export const cancelBooking = async ({ pnr, user, cancellationReason = 'Cancelled
     };
 
     await booking.save(sessionOption);
+
+    // Sync cancellation state to myjourneycollection
+    try {
+      await MyJourney.updateOne(
+        { pnr: booking.pnr },
+        {
+          $set: {
+            status: BOOKING_STATUS.CANCELLED,
+            refundAmount: refundInfo.refundAmount,
+            refundStatus: refundInfo.refundStatus,
+            cancellationDetails: booking.cancellationDetails
+          }
+        },
+        sessionOption
+      );
+    } catch (e) {
+      console.warn('Note: myjourneycollection cancel sync:', e.message);
+    }
 
     // 3. Log audit event
     await logAuditEvent({

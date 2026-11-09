@@ -7,10 +7,11 @@ export const connectDB = async (uri = process.env.MONGODB_URI) => {
     }
 
     const conn = await mongoose.connect(uri, {
+      dbName: 'myjourney',
       autoIndex: true
     });
 
-    console.log(`[Database] MongoDB Connected: ${conn.connection.host}`);
+    console.log(`[Database] MongoDB Connected: ${conn.connection.host}, Database: ${conn.connection.name}`);
     return conn;
   } catch (error) {
     console.error(`[Database Error] ${error.message}`);
@@ -20,4 +21,3 @@ export const connectDB = async (uri = process.env.MONGODB_URI) => {
     throw error;
   }
 };
-

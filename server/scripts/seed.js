@@ -1,4 +1,10 @@
-import 'dotenv/config';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import User from '../src/models/User.js';
@@ -9,6 +15,7 @@ import Route from '../src/models/Route.js';
 import Trip from '../src/models/Trip.js';
 import SeatInventory from '../src/models/SeatInventory.js';
 import Booking from '../src/models/Booking.js';
+import MyJourney from '../src/models/MyJourney.js';
 import CancellationPolicy from '../src/models/CancellationPolicy.js';
 import { USER_ROLES, BOOKING_STATUS, SEAT_STATUS, PAYMENT_STATUS } from '../src/config/constants.js';
 
@@ -39,7 +46,7 @@ const generateSeats = (totalSeats, layoutType = '2+2') => {
 export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
   try {
     if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(mongoUri);
+      await mongoose.connect(mongoUri, { dbName: 'myjourney' });
     }
     console.log('[Seed] Connected to database. Preparing seed data...');
 
@@ -451,8 +458,61 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
         }
       );
 
+      // Also persist in myjourneycollection
+      await MyJourney.findOneAndUpdate(
+        { pnr: demoBooking.pnr },
+        {
+          type: 'BOOKING',
+          pnr: demoBooking.pnr,
+          bookingId: demoBooking._id,
+          tripId: demoTrip._id,
+          routeName: 'Delhi (Kashmere Gate) to Jaipur (Sindhi Camp)',
+          originCity: 'Delhi',
+          destinationCity: 'Jaipur',
+          boardingStop: 'Kashmere Gate ISBT',
+          droppingStop: 'Sindhi Camp Central Bus Stand',
+          departureAt: demoTrip.departureAt,
+          arrivalAt: demoTrip.arrivalAt,
+          busType: 'Volvo Multi-Axle AC (2+2)',
+          busRegistration: 'DL-01-AB-1024',
+          operatorName: 'Delhi State Road Transport Corporation (DSRTC)',
+          passengers: demoBooking.passengers,
+          seatNumbers: demoSeats,
+          totalAmount: 1595,
+          fareBreakdown: demoBooking.fareBreakdown,
+          status: BOOKING_STATUS.CONFIRMED,
+          paymentStatus: PAYMENT_STATUS.SIMULATED_SUCCESS,
+          bookingDate: new Date()
+        },
+        { upsert: true, new: true }
+      );
+
       console.log(`[Seed] Demo booking created with PNR ${demoBooking.pnr} for ${customerUser.name}.`);
     }
+
+    // 9. Sync available journeys to myjourneycollection
+    for (const trip of tripDocs) {
+      await MyJourney.findOneAndUpdate(
+        { tripId: trip._id, type: 'TRIP_SCHEDULE' },
+        {
+          type: 'TRIP_SCHEDULE',
+          tripId: trip._id,
+          routeName: trip.routeId?.routeName || 'Intercity Journey Corridor',
+          departureAt: trip.departureAt,
+          arrivalAt: trip.arrivalAt,
+          baseFare: trip.baseFare,
+          totalAmount: trip.baseFare,
+          status: trip.status,
+          journeyDetails: {
+            busId: trip.busId,
+            operatorId: trip.operatorId,
+            routeId: trip.routeId
+          }
+        },
+        { upsert: true, new: true }
+      );
+    }
+    console.log(`[Seed] myjourneycollection synchronized with journey records.`);
 
     console.log('\n========================================');
     console.log('✅ YATRASETU DATABASE SEED COMPLETE');

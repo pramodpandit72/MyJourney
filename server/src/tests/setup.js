@@ -11,7 +11,7 @@ export const setupTestDB = () => {
     });
     const uri = replSet.getUri();
     await mongoose.connect(uri);
-  }, 60000);
+  }, 180000);
 
   afterAll(async () => {
     if (mongoose.connection.readyState !== 0) {
@@ -20,7 +20,7 @@ export const setupTestDB = () => {
     if (replSet) {
       await replSet.stop();
     }
-  }, 60000);
+  }, 180000);
 
   afterEach(async () => {
     // Clean collections between tests

@@ -12,6 +12,7 @@ router.use(authenticate, authorize(USER_ROLES.OPERATOR, USER_ROLES.ADMIN));
 router.get('/dashboard', operatorController.getOperatorDashboard);
 router.get('/trips', operatorController.getOperatorTrips);
 router.get('/trips/:tripId/manifest', operatorController.getPassengerManifest);
+router.get('/bookings', operatorController.getOperatorBookings);
 router.get('/reports/occupancy', operatorController.getOccupancyReport);
 
 export default router;
