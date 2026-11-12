@@ -19,3 +19,4 @@ services:
         value: "true"
       - key: CLIENT_ORIGIN
         sync: false
+
