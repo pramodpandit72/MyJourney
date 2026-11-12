@@ -39,6 +39,8 @@ export const SearchResultsPage = () => {
 
   const originStopId = searchParams.get('originStopId') || '';
   const destinationStopId = searchParams.get('destinationStopId') || '';
+  const originQuery = searchParams.get('originQuery') || '';
+  const destinationQuery = searchParams.get('destinationQuery') || '';
   const travelDate = searchParams.get('travelDate') || '';
   const passengerCountParam = Number(searchParams.get('passengers')) || 1;
 
@@ -72,6 +74,8 @@ export const SearchResultsPage = () => {
       if (travelDate) params.append('travelDate', travelDate);
       if (originStopId) params.append('originStopId', originStopId);
       if (destinationStopId) params.append('destinationStopId', destinationStopId);
+      if (!originStopId && originQuery) params.append('originQuery', originQuery);
+      if (!destinationStopId && destinationQuery) params.append('destinationQuery', destinationQuery);
 
       const res = await api.get(`/trips?${params.toString()}`);
       setTrips(res?.data?.trips || []);
@@ -84,7 +88,7 @@ export const SearchResultsPage = () => {
 
   useEffect(() => {
     fetchTrips();
-  }, [originStopId, destinationStopId, travelDate]);
+  }, [originStopId, destinationStopId, originQuery, destinationQuery, travelDate]);
 
   const handleOpenSeatSelection = async (trip) => {
     if (!isAuthenticated) {
@@ -267,6 +271,8 @@ export const SearchResultsPage = () => {
         initialValues={{
           originStopId,
           destinationStopId,
+          originQuery,
+          destinationQuery,
           travelDate,
           passengers: passengerCountParam
         }}

@@ -28,12 +28,51 @@ export const getStops = async (req, res, next) => {
   }
 };
 
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const findMatchingStopIds = async (rawQuery) => {
+  const cleaned = String(rawQuery || '').trim();
+  if (!cleaned) return [];
+
+  const parts = cleaned
+    .split(/[—,-]+/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  const orConditions = [
+    { city: { $regex: escapeRegex(cleaned), $options: 'i' } },
+    { name: { $regex: escapeRegex(cleaned), $options: 'i' } },
+    { stopCode: { $regex: escapeRegex(cleaned), $options: 'i' } },
+    { state: { $regex: escapeRegex(cleaned), $options: 'i' } }
+  ];
+
+  if (parts.length > 1) {
+    const andMatch = parts.map((part) => {
+      const rx = escapeRegex(part);
+      return {
+        $or: [
+          { city: { $regex: rx, $options: 'i' } },
+          { name: { $regex: rx, $options: 'i' } },
+          { stopCode: { $regex: rx, $options: 'i' } },
+          { state: { $regex: rx, $options: 'i' } }
+        ]
+      };
+    });
+    orConditions.push({ $and: andMatch });
+  }
+
+  const matched = await Stop.find({ status: 'ACTIVE', $or: orConditions }).select('_id');
+  return matched.map((s) => s._id.toString());
+};
+
 export const searchTrips = async (req, res, next) => {
   try {
     const {
       originStopId: origId,
       sourceStopId,
       destinationStopId,
+      originQuery,
+      destinationQuery,
       travelDate,
       busType,
       operatorId,
@@ -42,6 +81,27 @@ export const searchTrips = async (req, res, next) => {
     } = req.query;
 
     const originStopId = origId || sourceStopId;
+
+    let candidateOriginIds = null;
+    let candidateDestinationIds = null;
+
+    if (originStopId) {
+      candidateOriginIds = [originStopId];
+    } else if (originQuery && originQuery.trim()) {
+      candidateOriginIds = await findMatchingStopIds(originQuery);
+      if (candidateOriginIds.length === 0) {
+        return sendSuccess(res, { trips: [], count: 0, travelDate });
+      }
+    }
+
+    if (destinationStopId) {
+      candidateDestinationIds = [destinationStopId];
+    } else if (destinationQuery && destinationQuery.trim()) {
+      candidateDestinationIds = await findMatchingStopIds(destinationQuery);
+      if (candidateDestinationIds.length === 0) {
+        return sendSuccess(res, { trips: [], count: 0, travelDate });
+      }
+    }
 
     // Build base trip query
     const tripQuery = {
@@ -82,15 +142,46 @@ export const searchTrips = async (req, res, next) => {
       let droppingStop = null;
       let segmentDistanceKm = trip.routeId.totalDistance;
 
-      if (originStopId && destinationStopId) {
-        const routeValidation = validateRouteStops(routeStops, originStopId, destinationStopId);
-        if (!routeValidation.isValid) {
+      if (candidateOriginIds && candidateDestinationIds) {
+        let validSegment = null;
+        for (const oId of candidateOriginIds) {
+          for (const dId of candidateDestinationIds) {
+            if (oId === dId) continue;
+            const routeValidation = validateRouteStops(routeStops, oId, dId);
+            if (routeValidation.isValid) {
+              validSegment = routeValidation;
+              break;
+            }
+          }
+          if (validSegment) break;
+        }
+        if (!validSegment) {
           // Trip does not serve this exact sequence
           continue;
         }
-        boardingStop = routeValidation.boardingStop;
-        droppingStop = routeValidation.droppingStop;
-        segmentDistanceKm = routeValidation.segmentDistanceKm;
+        boardingStop = validSegment.boardingStop;
+        droppingStop = validSegment.droppingStop;
+        segmentDistanceKm = validSegment.segmentDistanceKm;
+      } else if (candidateOriginIds) {
+        const matchOrigin = routeStops.find((rs) =>
+          candidateOriginIds.includes((rs.stopId?._id || rs.stopId)?.toString())
+        );
+        if (!matchOrigin || matchOrigin.stopOrder >= routeStops[routeStops.length - 1]?.stopOrder) {
+          continue;
+        }
+        boardingStop = matchOrigin;
+        droppingStop = routeStops[routeStops.length - 1];
+        segmentDistanceKm = Math.max(0, (droppingStop.distanceKm || 0) - (boardingStop.distanceKm || 0));
+      } else if (candidateDestinationIds) {
+        const matchDest = routeStops.find((rs) =>
+          candidateDestinationIds.includes((rs.stopId?._id || rs.stopId)?.toString())
+        );
+        if (!matchDest || matchDest.stopOrder <= routeStops[0]?.stopOrder) {
+          continue;
+        }
+        boardingStop = routeStops[0];
+        droppingStop = matchDest;
+        segmentDistanceKm = Math.max(0, (droppingStop.distanceKm || 0) - (boardingStop.distanceKm || 0));
       } else {
         // Full route defaults
         boardingStop = routeStops[0];
