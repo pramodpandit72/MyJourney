@@ -72,6 +72,13 @@ app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/operator', operatorRoutes);
 app.use('/api/v1', publicRoutes);
 
+// Compatibility fallback aliases if a client omits the /api/v1 prefix
+app.use('/auth', authRoutes);
+app.use('/bookings', bookingRoutes);
+app.use('/admin', adminRoutes);
+app.use('/operator', operatorRoutes);
+app.use('/', publicRoutes);
+
 // 404 Route handler
 app.use('*', (req, res) => {
   sendError(res, `Route ${req.originalUrl} not found`, 404, 'ROUTE_NOT_FOUND');
