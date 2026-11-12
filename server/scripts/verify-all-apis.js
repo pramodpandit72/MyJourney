@@ -83,7 +83,7 @@ async function verifyAllAPIs() {
     // 2. AUTHENTICATION ENDPOINTS
     // ==========================================
     console.log('\n--- 2. AUTHENTICATION APIS ---');
-    const testEmail = `verify_user_${Date.now()}@yatrasetu.in`;
+    const testEmail = `verify_user_${Date.now()}@myjourney.in`;
     {
       const res = await request(app)
         .post('/api/v1/auth/register')
@@ -115,7 +115,7 @@ async function verifyAllAPIs() {
       const res = await request(app)
         .post('/api/v1/auth/login')
         .send({
-          email: 'operator.delhi@yatrasetu.gov.in',
+          email: 'operator.delhi@myjourney.in',
           password: 'Password@123'
         });
       operatorToken = res.body.data?.token || '';
@@ -126,7 +126,7 @@ async function verifyAllAPIs() {
       const res = await request(app)
         .post('/api/v1/auth/login')
         .send({
-          email: 'admin@yatrasetu.gov.in',
+          email: 'admin@myjourney.in',
           password: 'Password@123'
         });
       adminToken = res.body.data?.token || '';
@@ -323,7 +323,7 @@ async function verifyAllAPIs() {
         .send({
           name: `Test Airways & Bus ${Date.now()}`,
           operatorCode: `TB${Math.floor(100 + Math.random() * 900)}`,
-          contactEmail: `ops_${Date.now()}@yatrasetu.in`,
+          contactEmail: `ops_${Date.now()}@myjourney.in`,
           phone: '+919999888877',
           status: 'ACTIVE'
         });
@@ -477,7 +477,7 @@ async function verifyAllAPIs() {
         .put('/api/v1/admin/cancellation-policy')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          policyName: 'Updated Standard YatraSetu Policy',
+          policyName: 'Updated Standard MyJourney Policy',
           refundTiers: [
             { minHoursBeforeDeparture: 24, refundPercentage: 100 },
             { minHoursBeforeDeparture: 6, refundPercentage: 50 },

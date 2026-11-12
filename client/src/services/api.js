@@ -8,10 +8,10 @@ const api = axios.create({
   }
 });
 
-// Attach bearer token if stored in localStorage (backup for cross-origin or cookie restrictions)
+// Attach bearer token if stored in localStorage
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('yatrasetu_token');
+    const token = localStorage.getItem('myjourney_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -33,4 +33,3 @@ api.interceptors.response.use(
 );
 
 export default api;
-

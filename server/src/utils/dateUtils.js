@@ -1,5 +1,5 @@
 /**
- * Date and Time utilities for YatraSetu
+ * Date and Time utilities for MyJourney
  * Primary display timezone: Asia/Kolkata (+05:30)
  */
 

@@ -8,7 +8,7 @@ const startServer = async () => {
   try {
     await connectDB();
     app.listen(PORT, () => {
-      console.log(`[Server] YatraSetu API running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
+      console.log(`[Server] MyJourney API running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode.`);
       console.log(`[Docs] Swagger UI available at http://localhost:${PORT}/api/docs`);
     });
   } catch (err) {

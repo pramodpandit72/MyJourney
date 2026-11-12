@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
     if (res?.data?.user) {
       setUser(res.data.user);
       if (res.data.token) {
-        localStorage.setItem('yatrasetu_token', res.data.token);
+        localStorage.setItem('myjourney_token', res.data.token);
       }
     }
     return res;
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     if (res?.data?.user) {
       setUser(res.data.user);
       if (res.data.token) {
-        localStorage.setItem('yatrasetu_token', res.data.token);
+        localStorage.setItem('myjourney_token', res.data.token);
       }
     }
     return res;
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
     } catch (err) {
       console.warn('Logout error', err);
     } finally {
-      localStorage.removeItem('yatrasetu_token');
+      localStorage.removeItem('myjourney_token');
       setUser(null);
     }
   };
@@ -76,4 +76,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-

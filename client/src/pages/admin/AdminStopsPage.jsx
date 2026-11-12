@@ -1,15 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import {
-  MapPin,
-  Plus,
-  Edit2,
-  Loader2,
-  AlertCircle,
-  X
-} from 'lucide-react';
+  TableContainer,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Modal,
+  Button,
+  Input,
+  Select,
+  StatusBadge,
+  LoadingSkeleton,
+  ErrorState,
+  EmptyState
+} from '../../components/ui/index.js';
+import { MapPin, Plus, Edit2 } from 'lucide-react';
 
 export const AdminStopsPage = () => {
+  const { toast } = useToast();
   const [stops, setStops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -27,6 +39,7 @@ export const AdminStopsPage = () => {
 
   const fetchStops = async () => {
     setLoading(true);
+    setError('');
     try {
       const res = await api.get('/admin/stops');
       setStops(res?.data?.stops || []);
@@ -79,8 +92,10 @@ export const AdminStopsPage = () => {
 
       if (editingStop) {
         await api.put(`/admin/stops/${editingStop._id}`, payload);
+        toast.success('Stop terminal updated.');
       } else {
         await api.post('/admin/stops', payload);
+        toast.success('New bus stop terminal created.');
       }
 
       setModalOpen(false);
@@ -96,201 +111,144 @@ export const AdminStopsPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest">
+          <span className="text-[11px] font-bold text-[#0F766E] dark:text-[#5EEAD4] uppercase tracking-wider">
             Station Network
           </span>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
-            Bus Stops & Intercity Terminals
+          <h1 className="text-xl sm:text-2xl font-bold text-[#14532D] dark:text-[#F0FDF4] mt-0.5">
+            Bus Terminals & Stops
           </h1>
-          <p className="text-xs text-slate-500">
-            Designate official boarding, transit, and terminus stations across jurisdictions.
+          <p className="text-xs sm:text-sm text-[#475569] dark:text-[#A7C4B0]">
+            Manage registered city terminals, ISBTs, and intermediate boarding/dropping points.
           </p>
         </div>
 
-        <button
-          onClick={openCreateModal}
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-emerald-600/20"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Stop</span>
-        </button>
+        <Button variant="primary" icon={Plus} onClick={openCreateModal}>
+          Add Stop Terminal
+        </Button>
       </div>
 
       {loading ? (
-        <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading stops...</p>
-        </div>
+        <LoadingSkeleton rows={5} />
       ) : error ? (
-        <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 text-center">
-          <AlertCircle className="w-6 h-6 mx-auto mb-2 text-rose-600" />
-          <p className="text-sm font-bold">{error}</p>
-        </div>
+        <ErrorState message={error} onRetry={fetchStops} />
+      ) : stops.length === 0 ? (
+        <EmptyState
+          icon={MapPin}
+          title="No Bus Stops Configured"
+          description="Add city terminals and boarding stations before building intercity route corridors."
+          action={
+            <Button variant="primary" size="sm" icon={Plus} onClick={openCreateModal}>
+              Add Terminal
+            </Button>
+          }
+        />
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="py-3 px-5">Stop Code</th>
-                  <th className="py-3 px-5">Stop Name</th>
-                  <th className="py-3 px-5">City</th>
-                  <th className="py-3 px-5">State</th>
-                  <th className="py-3 px-5">Status</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
-                {stops.map((s) => (
-                  <tr key={s._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                    <td className="py-4 px-5 font-mono font-bold text-teal-600 dark:text-teal-400">
-                      {s.stopCode}
-                    </td>
-                    <td className="py-4 px-5 font-bold text-slate-900 dark:text-white">
-                      {s.name}
-                    </td>
-                    <td className="py-4 px-5 font-medium">{s.city}</td>
-                    <td className="py-4 px-5 text-slate-500">{s.state}</td>
-                    <td className="py-4 px-5">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                          s.status === 'ACTIVE'
-                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                            : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
-                        }`}
-                      >
-                        {s.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-5 text-right">
-                      <button
-                        onClick={() => openEditModal(s)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Stop Code</Th>
+                <Th>Stop Name</Th>
+                <Th>City</Th>
+                <Th>State</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {stops.map((s) => (
+                <Tr key={s._id}>
+                  <Td className="font-mono font-bold text-[#0F766E] dark:text-[#5EEAD4]">
+                    {s.stopCode}
+                  </Td>
+                  <Td className="font-bold text-[#14532D] dark:text-[#F0FDF4]">{s.name}</Td>
+                  <Td className="font-medium">{s.city}</Td>
+                  <Td className="text-[#475569] dark:text-[#A7C4B0]">{s.state}</Td>
+                  <Td>
+                    <StatusBadge status={s.status} />
+                  </Td>
+                  <Td className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={Edit2}
+                      onClick={() => openEditModal(s)}
+                      aria-label={`Edit ${s.name}`}
+                    >
+                      Edit
+                    </Button>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
       )}
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 max-w-md w-full space-y-5 shadow-2xl">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                {editingStop ? 'Edit Stop / Terminal' : 'Create New Stop / Terminal'}
-              </h3>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editingStop ? 'Edit Stop / Terminal' : 'Create New Stop / Terminal'}
+        size="md"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {formError && (
+            <div className="p-3 rounded-lg bg-[#FEE2E2] dark:bg-[#3B1517] border border-[#B91C1C]/30 text-[#991B1B] dark:text-[#FEE2E2] text-xs font-semibold">
+              {formError}
             </div>
+          )}
 
-            {formError && (
-              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold">
-                {formError}
-              </div>
-            )}
+          <Input
+            label="Terminal / Stop Name *"
+            type="text"
+            required
+            placeholder="Kashmere Gate ISBT"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                  Terminal / Stop Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Kashmere Gate ISBT"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Delhi"
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    State *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Delhi"
-                    value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Stop Code *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. DEL-KG"
-                    value={stopCode}
-                    onChange={(e) => setStopCode(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Status
-                  </label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20 disabled:opacity-50"
-                >
-                  {submitting ? 'Saving...' : editingStop ? 'Update Stop' : 'Create Stop'}
-                </button>
-              </div>
-            </form>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Input
+              label="City *"
+              type="text"
+              required
+              placeholder="New Delhi"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            />
+            <Input
+              label="State *"
+              type="text"
+              required
+              placeholder="Delhi"
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+            />
+            <Input
+              label="Stop Code *"
+              type="text"
+              required
+              placeholder="DEL-ISBT"
+              value={stopCode}
+              onChange={(e) => setStopCode(e.target.value)}
+              className="uppercase font-mono"
+            />
+            <Select label="Status" value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="INACTIVE">INACTIVE</option>
+            </Select>
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-[#DCE7DF] dark:border-[#294A38]">
+            <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" loading={submitting}>
+              {editingStop ? 'Update Terminal' : 'Create Stop'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
-

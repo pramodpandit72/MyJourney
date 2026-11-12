@@ -1,7 +1,7 @@
 {
-  "name": "yatrasetu-server",
+  "name": "myjourney-server",
   "version": "1.0.0",
-  "description": "Backend API for YatraSetu Bus Booking & Operations Portal",
+  "description": "Backend API for MyJourney Bus Booking & Operations Portal",
   "type": "module",
   "main": "src/server.js",
   "scripts": {

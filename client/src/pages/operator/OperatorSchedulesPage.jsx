@@ -1,37 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../../services/api.js';
 import {
-  Calendar,
-  Bus,
-  Clock,
-  MapPin,
-  Users,
-  Search,
-  Loader2,
-  AlertCircle,
-  FileText
-} from 'lucide-react';
+  TableContainer,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Button,
+  StatusBadge,
+  LoadingSkeleton,
+  ErrorState,
+  EmptyState
+} from '../../components/ui/index.js';
+import { Calendar, FileText } from 'lucide-react';
 
 export const OperatorSchedulesPage = () => {
-  const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
 
+  const fetchTrips = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await api.get('/operator/trips');
+      setTrips(res?.data?.trips || []);
+    } catch (err) {
+      setError(err.message || 'Failed to load assigned schedules.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTrips = async () => {
-      setLoading(true);
-      try {
-        const res = await api.get('/operator/trips');
-        setTrips(res?.data?.trips || []);
-      } catch (err) {
-        setError(err.message || 'Failed to load assigned schedules.');
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTrips();
   }, []);
 
@@ -51,30 +56,29 @@ export const OperatorSchedulesPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+          <span className="text-[11px] font-bold text-[#0F766E] dark:text-[#5EEAD4] uppercase tracking-wider">
             Timetable Management
           </span>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#14532D] dark:text-[#F0FDF4] mt-0.5">
             Assigned Bus Schedules
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-[#475569] dark:text-[#A7C4B0]">
             Trips assigned to your authorized operator fleet.
           </p>
         </div>
 
-        {/* Status filter */}
-        <div className="flex space-x-1.5 bg-white dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs">
+        <div className="flex flex-wrap gap-1.5 bg-white dark:bg-[#162B22] p-1 rounded-lg border border-[#DCE7DF] dark:border-[#294A38] text-xs">
           {['ALL', 'SCHEDULED', 'COMPLETED', 'CANCELLED'].map((st) => (
             <button
               key={st}
+              type="button"
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1.5 rounded-lg font-bold transition-all ${
+              className={`px-3 py-1.5 rounded-md font-semibold transition-colors ${
                 statusFilter === st
-                  ? 'bg-emerald-600 text-white'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  ? 'bg-[#166534] dark:bg-[#4ADE80] text-white dark:text-[#0B1712]'
+                  : 'text-[#475569] dark:text-[#D1E7D8] hover:bg-[#F0FDF4] dark:hover:bg-[#1C382C]'
               }`}
             >
               {st}
@@ -84,89 +88,89 @@ export const OperatorSchedulesPage = () => {
       </div>
 
       {loading ? (
-        <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading schedules...</p>
-        </div>
+        <LoadingSkeleton rows={5} />
       ) : error ? (
-        <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 text-center">
-          <AlertCircle className="w-6 h-6 mx-auto mb-2 text-rose-600" />
-          <p className="text-sm font-bold">{error}</p>
-        </div>
+        <ErrorState message={error} onRetry={fetchTrips} />
       ) : filtered.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-12 text-center text-slate-500">
-          <Calendar className="w-12 h-12 mx-auto mb-3 text-slate-400" />
-          <p className="font-bold">No assigned schedules found.</p>
-        </div>
+        <EmptyState
+          icon={Calendar}
+          title="No Assigned Schedules"
+          description="No trips match the selected schedule status filter."
+        />
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="py-3 px-5">Route & Corridor</th>
-                  <th className="py-3 px-5">Bus & Type</th>
-                  <th className="py-3 px-5">Departure (IST)</th>
-                  <th className="py-3 px-5">Occupancy</th>
-                  <th className="py-3 px-5">Status</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
-                {filtered.map((trip) => (
-                  <tr key={trip._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="py-4 px-5">
-                      <p className="font-bold text-slate-900 dark:text-white">
-                        {trip.routeId?.routeName || 'N/A'}
-                      </p>
-                      <p className="text-[11px] text-slate-500">{trip.routeId?.routeCode}</p>
-                    </td>
-                    <td className="py-4 px-5">
-                      <p className="font-bold text-slate-900 dark:text-white">
-                        {trip.busId?.registrationNumber}
-                      </p>
-                      <p className="text-[11px] text-slate-500">{trip.busId?.busType}</p>
-                    </td>
-                    <td className="py-4 px-5">
-                      <p className="font-semibold">{formatIST(trip.departureAt)}</p>
-                      <p className="text-[11px] text-slate-400">Arr: {formatIST(trip.arrivalAt)}</p>
-                    </td>
-                    <td className="py-4 px-5">
-                      <div className="space-y-1">
-                        <div className="flex justify-between text-[11px] font-bold">
-                          <span>{trip.bookedSeats} / {trip.totalSeats}</span>
-                          <span className="text-emerald-600 dark:text-emerald-400">{trip.occupancyPercentage}%</span>
-                        </div>
-                        <div className="w-24 h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
-                          <div
-                            className="h-full bg-emerald-500 rounded-full"
-                            style={{ width: `${trip.occupancyPercentage}%` }}
-                          ></div>
-                        </div>
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Route & Corridor</Th>
+                <Th>Bus & Type</Th>
+                <Th>Departure (IST)</Th>
+                <Th>Occupancy</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {filtered.map((trip) => (
+                <Tr key={trip._id}>
+                  <Td>
+                    <p className="font-bold text-[#14532D] dark:text-[#F0FDF4]">
+                      {trip.routeId?.routeName || 'N/A'}
+                    </p>
+                    <p className="text-[11px] font-mono text-[#0F766E] dark:text-[#5EEAD4]">
+                      {trip.routeId?.routeCode}
+                    </p>
+                  </Td>
+                  <Td>
+                    <p className="font-bold text-[#172B24] dark:text-[#F0FDF4]">
+                      {trip.busId?.registrationNumber}
+                    </p>
+                    <p className="text-[11px] text-[#64748B] dark:text-[#A7C4B0]">
+                      {trip.busId?.busType}
+                    </p>
+                  </Td>
+                  <Td>
+                    <p className="font-semibold text-[#172B24] dark:text-[#F0FDF4]">
+                      {formatIST(trip.departureAt)}
+                    </p>
+                    <p className="text-[11px] text-[#64748B] dark:text-[#A7C4B0]">
+                      Arr: {formatIST(trip.arrivalAt)}
+                    </p>
+                  </Td>
+                  <Td>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[11px] font-bold">
+                        <span>
+                          {trip.bookedSeats} / {trip.totalSeats}
+                        </span>
+                        <span className="text-[#15803D] dark:text-[#4ADE80]">
+                          {trip.occupancyPercentage}%
+                        </span>
                       </div>
-                    </td>
-                    <td className="py-4 px-5">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
-                        {trip.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-5 text-right">
-                      <Link
-                        to={`/operator/manifests?tripId=${trip._id}`}
-                        className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-600 text-emerald-700 dark:text-emerald-300 hover:text-white font-bold transition-all shadow-sm"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>Manifest</span>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                      <div className="w-24 h-1.5 rounded-full bg-[#DCE7DF] dark:bg-[#294A38] overflow-hidden">
+                        <div
+                          className="h-full bg-[#166534] dark:bg-[#4ADE80] rounded-full"
+                          style={{ width: `${trip.occupancyPercentage}%` }}
+                        />
+                      </div>
+                    </div>
+                  </Td>
+                  <Td>
+                    <StatusBadge status={trip.status} />
+                  </Td>
+                  <Td className="text-right">
+                    <Link to={`/operator/manifests?tripId=${trip._id}`}>
+                      <Button variant="secondary" size="sm" icon={FileText}>
+                        Manifest
+                      </Button>
+                    </Link>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
       )}
     </div>
   );
 };
-

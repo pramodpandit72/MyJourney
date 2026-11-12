@@ -1,29 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import api from '../../services/api.js';
-import { useAuth } from '../../context/AuthContext.jsx';
 import {
-  Ticket,
-  Bus,
-  Calendar,
-  Clock,
-  MapPin,
-  AlertCircle,
-  Loader2,
-  ChevronRight,
-  XCircle,
-  CheckCircle2,
-  Search
-} from 'lucide-react';
+  Breadcrumb,
+  Button,
+  Card,
+  CardContent,
+  StatusBadge,
+  LoadingSkeleton,
+  EmptyState,
+  ErrorState,
+  Input
+} from '../../components/ui/index.js';
+import { Ticket, Bus, Clock, ChevronRight, Search } from 'lucide-react';
 
 export const MyBookingsPage = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [pnrQuery, setPnrQuery] = useState('');
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -51,9 +47,15 @@ export const MyBookingsPage = () => {
     });
   };
 
-  // Filter logic
   const now = Date.now();
   const filteredBookings = bookings.filter((b) => {
+    if (pnrQuery.trim()) {
+      const q = pnrQuery.trim().toLowerCase();
+      const matchPnr = (b.pnr || '').toLowerCase().includes(q);
+      const matchRoute = (b.tripId?.routeId?.routeName || '').toLowerCase().includes(q);
+      if (!matchPnr && !matchRoute) return false;
+    }
+
     if (filterStatus === 'ALL') return true;
     if (filterStatus === 'CONFIRMED') return b.status === 'CONFIRMED';
     if (filterStatus === 'CANCELLED') return b.status === 'CANCELLED';
@@ -70,81 +72,81 @@ export const MyBookingsPage = () => {
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-6">
-      {/* Page Header */}
+      <Breadcrumb items={[{ label: 'My Bookings' }]} />
+
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+          <span className="text-xs font-bold text-[#0F766E] dark:text-[#5EEAD4] uppercase tracking-wider">
             Passenger Portal
           </span>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mt-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#14532D] dark:text-[#F0FDF4] mt-1">
             My Bookings & Tickets
           </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-[#475569] dark:text-[#A7C4B0] mt-0.5">
             View your confirmed reservations, download official e-tickets, or manage cancellations.
           </p>
         </div>
 
-        <Link
-          to="/search"
-          className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl text-xs font-bold flex items-center space-x-1.5 shadow-sm shadow-emerald-500/20"
-        >
-          <Search className="w-3.5 h-3.5" />
-          <span>Book New Journey</span>
+        <Link to="/search">
+          <Button variant="primary" size="md">
+            <Search className="w-4 h-4" />
+            <span>Book New Journey</span>
+          </Button>
         </Link>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex space-x-2 border-b border-slate-200 dark:border-slate-800 pb-2 text-xs font-semibold overflow-x-auto">
-        {[
-          { id: 'ALL', label: 'All Bookings' },
-          { id: 'UPCOMING', label: 'Upcoming Trips' },
-          { id: 'COMPLETED', label: 'Completed' },
-          { id: 'CANCELLED', label: 'Cancelled' }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setFilterStatus(tab.id)}
-            className={`px-3 py-1.5 rounded-lg whitespace-nowrap transition-colors ${
-              filterStatus === tab.id
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-sm shadow-emerald-500/20'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
+      {/* Filter Tabs + Search Input */}
+      <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3 pb-3 border-b border-[#DCE7DF] dark:border-[#294A38]">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+          {[
+            { id: 'ALL', label: 'All Bookings' },
+            { id: 'UPCOMING', label: 'Upcoming' },
+            { id: 'COMPLETED', label: 'Completed' },
+            { id: 'CANCELLED', label: 'Cancelled' }
+          ].map((tab) => {
+            const active = filterStatus === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setFilterStatus(tab.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors cursor-pointer ${
+                  active
+                    ? 'bg-[#166534] dark:bg-[#15803D] text-white'
+                    : 'text-[#475569] dark:text-[#D1E7D8] hover:bg-[#F0FDF4] dark:hover:bg-[#1C382C]'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="w-full sm:w-64">
+          <Input
+            icon={Search}
+            placeholder="Filter by PNR or route..."
+            value={pnrQuery}
+            onChange={(e) => setPnrQuery(e.target.value)}
+            className="h-9 text-xs"
+          />
+        </div>
       </div>
 
-      {/* Bookings List */}
+      {/* Bookings Feed */}
       {loading ? (
-        <div className="py-16 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading bookings from database...</p>
-        </div>
+        <LoadingSkeleton rows={4} />
       ) : error ? (
-        <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200 text-center space-y-2">
-          <AlertCircle className="w-6 h-6 mx-auto text-rose-600" />
-          <p className="text-sm font-bold">{error}</p>
-        </div>
+        <ErrorState message={error} onRetry={fetchBookings} />
       ) : filteredBookings.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-4">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 mx-auto">
-            <Ticket className="w-7 h-7" />
-          </div>
-          <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">No Bookings Found</h3>
-            <p className="text-xs text-slate-500 max-w-sm mx-auto mt-1">
-              You do not have any bookings under the "{filterStatus.toLowerCase()}" filter.
-            </p>
-          </div>
-          <Link
-            to="/search"
-            className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm shadow-emerald-500/20"
-          >
-            <span>Search Buses Now</span>
-            <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
+        <EmptyState
+          icon={Ticket}
+          title="No Bookings Found"
+          description={`You do not have any bookings matching your current filter criteria.`}
+          actionLabel="Search Available Buses"
+          onAction={() => (window.location.href = '/search')}
+        />
       ) : (
         <div className="space-y-4">
           {filteredBookings.map((b) => {
@@ -152,71 +154,70 @@ export const MyBookingsPage = () => {
             const trip = b.tripId;
 
             return (
-              <div
-                key={b._id}
-                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md hover:border-emerald-500/30 transition-all flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
-              >
-                {/* Left details */}
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono font-black text-sm text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-900">
-                      PNR: {b.pnr}
-                    </span>
-                    <span
-                      className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
-                        isConfirmed
-                          ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                          : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
-                      }`}
-                    >
-                      {b.status}
-                    </span>
-                    <span className="text-xs text-slate-400">
-                      Booked on {formatIST(b.bookingDate)}
-                    </span>
+              <Card key={b._id} hoverable>
+                <CardContent className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono font-bold text-xs text-[#14532D] dark:text-[#F0FDF4] bg-[#F0FDF4] dark:bg-[#234B35] px-2.5 py-0.5 rounded-md border border-[#DCE7DF] dark:border-[#294A38]">
+                        PNR: {b.pnr}
+                      </span>
+                      <StatusBadge variant={isConfirmed ? 'success' : 'error'}>
+                        {b.status}
+                      </StatusBadge>
+                      <span className="text-xs text-[#64748B] dark:text-[#A7C4B0]">
+                        Booked {formatIST(b.bookingDate)}
+                      </span>
+                    </div>
+
+                    <h3 className="font-bold text-base text-[#14532D] dark:text-[#F0FDF4] truncate">
+                      {trip?.routeId?.routeName || 'Intercity Bus Service'}
+                    </h3>
+
+                    <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-xs text-[#475569] dark:text-[#D1E7D8]">
+                      <span className="inline-flex items-center gap-1.5">
+                        <Bus className="w-3.5 h-3.5 text-[#0F766E] dark:text-[#5EEAD4]" />
+                        <span>
+                          {trip?.operatorId?.name} ({trip?.busId?.busType})
+                        </span>
+                      </span>
+                      <span className="inline-flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[#166534] dark:text-[#4ADE80]" />
+                        <span>Dep: {formatIST(trip?.departureAt)}</span>
+                      </span>
+                      <span>
+                        Seats:{' '}
+                        <strong className="text-[#14532D] dark:text-[#F0FDF4]">
+                          {b.seatNumbers?.join(', ')}
+                        </strong>
+                      </span>
+                    </div>
+
+                    {!isConfirmed && (
+                      <p className="text-xs text-[#B91C1C] dark:text-[#F87171] font-medium">
+                        Simulated Refund: ₹{b.refundAmount} • Status: {b.refundStatus}
+                      </p>
+                    )}
                   </div>
 
-                  <h3 className="font-bold text-base text-slate-900 dark:text-white">
-                    {trip?.routeId?.routeName || 'Intercity Bus Service'}
-                  </h3>
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between w-full md:w-auto gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-[#DCE7DF] dark:border-[#294A38] shrink-0">
+                    <div className="sm:text-right">
+                      <span className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#A7C4B0] block">
+                        Total Fare
+                      </span>
+                      <span className="text-lg font-bold text-[#166534] dark:text-[#4ADE80] font-mono">
+                        ₹{b.totalAmount}
+                      </span>
+                    </div>
 
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
-                    <span className="flex items-center space-x-1">
-                      <Bus className="w-3.5 h-3.5 text-slate-400" />
-                      <span>{trip?.operatorId?.name} ({trip?.busId?.busType})</span>
-                    </span>
-                    <span className="flex items-center space-x-1">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span>Dep: {formatIST(trip?.departureAt)}</span>
-                    </span>
-                    <span>
-                      Seats: <strong className="text-slate-800 dark:text-slate-200">{b.seatNumbers?.join(', ')}</strong>
-                    </span>
+                    <Link to={`/ticket/${b.pnr}`}>
+                      <Button variant="secondary" size="sm">
+                        <span>View Ticket</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Button>
+                    </Link>
                   </div>
-
-                  {!isConfirmed && (
-                    <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">
-                      Simulated Refund: ₹{b.refundAmount} • Status: {b.refundStatus}
-                    </p>
-                  )}
-                </div>
-
-                {/* Right Fare & View Button */}
-                <div className="flex sm:flex-col items-center sm:items-end justify-between w-full md:w-auto gap-3 pt-3 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
-                  <div className="text-left sm:text-right">
-                    <span className="text-[10px] text-slate-400 uppercase block">Total Fare</span>
-                    <span className="text-lg font-black text-slate-900 dark:text-white">₹{b.totalAmount}</span>
-                  </div>
-
-                  <Link
-                    to={`/ticket/${b.pnr}`}
-                    className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 font-bold text-xs transition-colors flex items-center space-x-1 shadow-sm"
-                  >
-                    <span>View Ticket</span>
-                    <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             );
           })}
         </div>

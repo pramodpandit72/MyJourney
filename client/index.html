@@ -4,15 +4,26 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/bus-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>YatraSetu — Bus Booking & Operations Portal</title>
-    <meta name="description" content="Official public-service-style transport booking and operations management portal." />
+    <title>MyJourney — Public Transport & Bus Booking Portal</title>
+    <meta name="description" content="MyJourney — Your Journey. Your Comfort. Your Destination. Discover routes, compare bus services, select your preferred seats, and book intercity bus journeys." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script>
+      (function () {
+        try {
+          var saved = localStorage.getItem('myjourney_theme');
+          if (saved === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-background text-foreground antialiased selection:bg-primary-500 selection:text-white min-h-screen">
+  <body class="antialiased min-h-screen">
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
-

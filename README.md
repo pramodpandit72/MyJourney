@@ -1,4 +1,4 @@
-# YatraSetu — Bus Booking & Operations Portal
+# MyJourney — Bus Booking & Operations Portal
 
 [![ALGIONS AI LABS Evaluation](https://img.shields.io/badge/Assessment-ALGIONS%20AI%20LABS-0f172a?style=for-the-badge)](https://algions.com)
 [![Full-Stack Web Development](https://img.shields.io/badge/Role-Full--Stack%20Web%20Dev-2563eb?style=for-the-badge)]()
@@ -121,10 +121,10 @@ Pre-configured accounts seeded via `npm run seed`:
 
 | Role | Email | Password | Assigned Scope |
 | :--- | :--- | :--- | :--- |
-| **Passenger (Customer)** | `customer@yatrasetu.gov.in` | `Password@123` | Personal bookings & tickets |
-| **Chief Administrator** | `admin@yatrasetu.gov.in` | `Password@123` | Global management & analytics |
-| **Delhi Fleet Staff** | `operator.delhi@yatrasetu.gov.in` | `Password@123` | Delhi State Transit trips & manifests |
-| **Jaipur Fleet Staff** | `operator.jaipur@yatrasetu.gov.in` | `Password@123` | Rajasthan Transit trips & manifests |
+| **Passenger (Customer)** | `customer@myjourney.in` | `Password@123` | Personal bookings & tickets |
+| **Chief Administrator** | `admin@myjourney.in` | `Password@123` | Global management & analytics |
+| **Delhi Fleet Staff** | `operator.delhi@myjourney.in` | `Password@123` | Delhi State Transit trips & manifests |
+| **Jaipur Fleet Staff** | `operator.jaipur@myjourney.in` | `Password@123` | Rajasthan Transit trips & manifests |
 
 *Tip: The Login page contains one-click fast-fill credential cards for instant evaluation.*
 
@@ -152,7 +152,7 @@ Ensure `server/.env` contains your MongoDB URI:
 ```env
 PORT=5000
 NODE_ENV=development
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/yatrasetu?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/myjourney?retryWrites=true&w=majority
 JWT_SECRET=super-secret-jwt-key-change-in-production-min-32-chars
 CLIENT_ORIGIN=http://localhost:5173
 COOKIE_SECURE=false
@@ -252,7 +252,7 @@ npm run test:integration
 1. Create a free M0 cluster on [MongoDB Atlas](https://www.mongodb.com/atlas).
 2. Create a Database User with read/write privileges.
 3. In Network Access, allow IP Access (`0.0.0.0/0` for cloud deployment or your specific IP).
-4. Copy the connection string format: `mongodb+srv://<user>:<password>@cluster0.mongodb.net/yatrasetu?retryWrites=true&w=majority`.
+4. Copy the connection string format: `mongodb+srv://<user>:<password>@cluster0.mongodb.net/myjourney?retryWrites=true&w=majority`.
 5. Add it to Render environment variables.
 6. Trigger the seed script once deployed using Render Shell: `npm run seed`.
 

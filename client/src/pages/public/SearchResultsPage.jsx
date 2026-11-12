@@ -2,33 +2,44 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api.js';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { useToast } from '../../context/ToastContext.jsx';
 import { BusSearchForm } from '../../components/forms/BusSearchForm.jsx';
 import { SeatMap } from '../../components/seats/SeatMap.jsx';
 import {
+  Breadcrumb,
+  Button,
+  Card,
+  CardContent,
+  StatusBadge,
+  Modal,
+  LoadingSkeleton,
+  EmptyState,
+  ErrorState,
+  Select
+} from '../../components/ui/index.js';
+import {
   Bus,
-  Clock,
-  MapPin,
-  Calendar,
   Filter,
-  ArrowUpDown,
   AlertCircle,
-  CheckCircle2,
   Loader2,
   Armchair,
-  X,
   CreditCard,
   UserCheck,
-  ShieldCheck
+  ShieldCheck,
+  MapPin,
+  SlidersHorizontal,
+  ChevronDown
 } from 'lucide-react';
 
 export const SearchResultsPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { toast } = useToast();
 
   const originStopId = searchParams.get('originStopId') || '';
   const destinationStopId = searchParams.get('destinationStopId') || '';
-  const travelDate = searchParams.get('travelDate') || new Date().toISOString().split('T')[0];
+  const travelDate = searchParams.get('travelDate') || '';
   const passengerCountParam = Number(searchParams.get('passengers')) || 1;
 
   // Search results state
@@ -37,9 +48,10 @@ export const SearchResultsPage = () => {
   const [error, setError] = useState('');
 
   // Filters state
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [selectedBusType, setSelectedBusType] = useState('ALL');
   const [selectedTimeOfDay, setSelectedTimeOfDay] = useState('ALL');
-  const [maxFare, setMaxFare] = useState(2000);
+  const [maxFare, setMaxFare] = useState(2500);
   const [sortBy, setSortBy] = useState('departureAt');
   const [sortOrder, setSortOrder] = useState('asc');
 
@@ -52,31 +64,31 @@ export const SearchResultsPage = () => {
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
 
-  // Load Trips
+  const fetchTrips = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const params = new URLSearchParams();
+      if (travelDate) params.append('travelDate', travelDate);
+      if (originStopId) params.append('originStopId', originStopId);
+      if (destinationStopId) params.append('destinationStopId', destinationStopId);
+
+      const res = await api.get(`/trips?${params.toString()}`);
+      setTrips(res?.data?.trips || []);
+    } catch (err) {
+      setError(err.message || 'Failed to search available buses.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchTrips = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const params = new URLSearchParams({ travelDate });
-        if (originStopId) params.append('originStopId', originStopId);
-        if (destinationStopId) params.append('destinationStopId', destinationStopId);
-
-        const res = await api.get(`/trips?${params.toString()}`);
-        setTrips(res?.data?.trips || []);
-      } catch (err) {
-        setError(err.message || 'Failed to search available buses.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTrips();
   }, [originStopId, destinationStopId, travelDate]);
 
-  // Open Seat Selection Modal
   const handleOpenSeatSelection = async (trip) => {
     if (!isAuthenticated) {
+      toast.info('Please sign in to select seats and confirm your booking.');
       navigate('/login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
       return;
     }
@@ -97,23 +109,17 @@ export const SearchResultsPage = () => {
     }
   };
 
-  // Toggle seat selection
   const handleSeatToggle = (seatNumber) => {
     setBookingError('');
     if (selectedSeats.includes(seatNumber)) {
-      // Remove
-      const newSelected = selectedSeats.filter((s) => s !== seatNumber);
-      setSelectedSeats(newSelected);
+      setSelectedSeats(selectedSeats.filter((s) => s !== seatNumber));
       setPassengers((prev) => prev.filter((p) => p.seatNumber !== seatNumber));
     } else {
-      // Add
       if (selectedSeats.length >= 6) {
         setBookingError('Maximum 6 seats per booking transaction.');
         return;
       }
-      const newSelected = [...selectedSeats, seatNumber];
-      setSelectedSeats(newSelected);
-      // Auto-populate passenger object
+      setSelectedSeats([...selectedSeats, seatNumber]);
       setPassengers((prev) => [
         ...prev,
         {
@@ -128,14 +134,12 @@ export const SearchResultsPage = () => {
     }
   };
 
-  // Passenger field update
   const handlePassengerChange = (index, field, value) => {
     const updated = [...passengers];
     updated[index][field] = value;
     setPassengers(updated);
   };
 
-  // Submit Booking
   const handleConfirmBooking = async (e) => {
     e.preventDefault();
     setBookingError('');
@@ -145,7 +149,6 @@ export const SearchResultsPage = () => {
       return;
     }
 
-    // Validate passenger inputs
     for (let i = 0; i < passengers.length; i++) {
       const p = passengers[i];
       if (!p.name || p.name.trim().length < 2) {
@@ -153,13 +156,12 @@ export const SearchResultsPage = () => {
         return;
       }
       if (!p.age || isNaN(p.age) || Number(p.age) < 1 || Number(p.age) > 120) {
-        setBookingError(`Please enter a valid age (1-120) for passenger on Seat ${p.seatNumber}.`);
+        setBookingError(`Please enter a valid age (1–120) for passenger on Seat ${p.seatNumber}.`);
         return;
       }
     }
 
     setBookingLoading(true);
-
     try {
       const payload = {
         tripId: activeTrip._id,
@@ -173,16 +175,13 @@ export const SearchResultsPage = () => {
       };
 
       const res = await api.post('/bookings', payload);
-
       if (res?.data?.booking?.pnr) {
+        toast.success(`Booking confirmed! PNR: ${res.data.booking.pnr}`);
         navigate(`/ticket/${res.data.booking.pnr}?confirmed=true`);
       }
     } catch (err) {
       if (err.code === 'SEAT_UNAVAILABLE' || err.statusCode === 409) {
-        setBookingError(
-          'Conflict: One or more selected seats were just claimed by another passenger! Please refresh the seat layout.'
-        );
-        // Refresh seats
+        setBookingError('One or more selected seats were just booked by another passenger. Seat map refreshed.');
         try {
           const seatRes = await api.get(`/trips/${activeTrip._id}/seats`);
           setSeatLayoutData(seatRes?.data || null);
@@ -197,7 +196,6 @@ export const SearchResultsPage = () => {
     }
   };
 
-  // Client filtering & sorting
   const filteredTrips = trips
     .filter((trip) => {
       if (selectedBusType !== 'ALL' && trip.bus?.busType !== selectedBusType) return false;
@@ -208,9 +206,8 @@ export const SearchResultsPage = () => {
         if (selectedTimeOfDay === 'MORNING' && (depHour < 6 || depHour >= 12)) return false;
         if (selectedTimeOfDay === 'AFTERNOON' && (depHour < 12 || depHour >= 18)) return false;
         if (selectedTimeOfDay === 'EVENING' && (depHour < 18 || depHour >= 23)) return false;
-        if (selectedTimeOfDay === 'NIGHT' && (depHour >= 6 && depHour < 23)) return false;
+        if (selectedTimeOfDay === 'NIGHT' && depHour >= 6 && depHour < 23) return false;
       }
-
       return true;
     })
     .sort((a, b) => {
@@ -232,360 +229,387 @@ export const SearchResultsPage = () => {
       return 0;
     });
 
-  // Helper date formatter in IST
-  const formatTimeIST = (dateStr) => {
-    return new Date(dateStr).toLocaleTimeString('en-IN', {
+  const formatTimeIST = (dateStr) =>
+    new Date(dateStr).toLocaleTimeString('en-IN', {
       timeZone: 'Asia/Kolkata',
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
     });
+
+  const formatDateIST = (dateStr) =>
+    new Date(dateStr).toLocaleDateString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric'
+    });
+
+  const resetFilters = () => {
+    setSelectedBusType('ALL');
+    setSelectedTimeOfDay('ALL');
+    setMaxFare(2500);
+    setSortBy('departureAt');
+    setSortOrder('asc');
   };
+
+  const baseSelectedTotal = activeTrip ? selectedSeats.length * activeTrip.farePerPassenger : 0;
+  const gstAmount = Math.round(baseSelectedTotal * 0.05);
+  const serviceFee = selectedSeats.length > 0 ? 20 : 0;
+  const grandTotal = baseSelectedTotal + gstAmount + serviceFee;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <Breadcrumb items={[{ label: 'Search Buses' }]} />
+
       {/* Top Search Edit Bar */}
-      <div className="bg-slate-50 dark:bg-slate-900/60 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
-        <BusSearchForm
-          initialValues={{
-            originStopId,
-            destinationStopId,
-            travelDate,
-            passengers: passengerCountParam
-          }}
-        />
+      <BusSearchForm
+        initialValues={{
+          originStopId,
+          destinationStopId,
+          travelDate,
+          passengers: passengerCountParam
+        }}
+      />
+
+      {/* Mobile Collapsible Filter Toggle */}
+      <div className="lg:hidden">
+        <Button
+          variant="outline"
+          className="w-full justify-between"
+          onClick={() => setMobileFiltersOpen((o) => !o)}
+        >
+          <span className="inline-flex items-center gap-2">
+            <SlidersHorizontal className="w-4 h-4 text-[#166534] dark:text-[#4ADE80]" />
+            <span>Filters & Sorting</span>
+          </span>
+          <ChevronDown
+            className={`w-4 h-4 transition-transform ${mobileFiltersOpen ? 'rotate-180' : ''}`}
+          />
+        </Button>
       </div>
 
       {/* Main Grid: Filters Sidebar + Results */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Filters Sidebar */}
-        <aside className="lg:col-span-1 space-y-5">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-5">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm flex items-center space-x-1.5">
-                <Filter className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>Filters & Sorting</span>
-              </h3>
-              <button
-                onClick={() => {
-                  setSelectedBusType('ALL');
-                  setSelectedTimeOfDay('ALL');
-                  setMaxFare(2000);
-                  setSortBy('departureAt');
-                  setSortOrder('asc');
-                }}
-                className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
-              >
-                Reset
-              </button>
-            </div>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Sidebar */}
+        <aside className={`lg:col-span-3 ${mobileFiltersOpen ? 'block' : 'hidden lg:block'}`}>
+          <Card>
+            <CardContent className="space-y-5">
+              <div className="flex justify-between items-center pb-3 border-b border-[#DCE7DF] dark:border-[#294A38]">
+                <h2 className="font-bold text-[#14532D] dark:text-[#F0FDF4] text-sm flex items-center gap-1.5">
+                  <Filter className="w-4 h-4 text-[#0F766E] dark:text-[#5EEAD4]" />
+                  <span>Filters & Sort</span>
+                </h2>
+                <button
+                  type="button"
+                  onClick={resetFilters}
+                  className="text-xs font-semibold text-[#166534] dark:text-[#4ADE80] hover:underline cursor-pointer"
+                >
+                  Reset
+                </button>
+              </div>
 
-            {/* Sort Options */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">
-                Sort Trips By
-              </label>
-              <select
+              <Select
+                id="sort-trips"
+                label="Sort By"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
-                <option value="departureAt">Departure Time</option>
-                <option value="fare">Fare (Low to High)</option>
-                <option value="availableSeats">Seat Availability</option>
-              </select>
-            </div>
+                <option value="departureAt">Departure Time (Earliest)</option>
+                <option value="fare">Fare (Lowest First)</option>
+                <option value="availableSeats">Available Seats</option>
+              </Select>
 
-            {/* Departure Time of Day */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">
-                Departure Time
-              </label>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                {[
-                  { id: 'ALL', label: 'All Times' },
-                  { id: 'MORNING', label: 'Morning (6-12)' },
-                  { id: 'AFTERNOON', label: 'Afternoon (12-18)' },
-                  { id: 'EVENING', label: 'Evening (18-23)' },
-                  { id: 'NIGHT', label: 'Night (23-6)' }
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => setSelectedTimeOfDay(item.id)}
-                    className={`py-2 px-2.5 rounded-lg font-medium text-center transition-all ${
-                      selectedTimeOfDay === item.id
-                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-bold shadow-sm shadow-emerald-600/20'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+              {/* Departure Window */}
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-[#172B24] dark:text-[#D1E7D8] uppercase tracking-wider">
+                  Departure Window
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'ALL', label: 'All Times' },
+                    { id: 'MORNING', label: 'Morning (6–12)' },
+                    { id: 'AFTERNOON', label: 'Afternoon (12–18)' },
+                    { id: 'EVENING', label: 'Evening (18–23)' },
+                    { id: 'NIGHT', label: 'Night (23–6)' }
+                  ].map((item) => {
+                    const active = selectedTimeOfDay === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setSelectedTimeOfDay(item.id)}
+                        className={`py-2 px-2 rounded-lg text-xs font-semibold border transition-colors cursor-pointer ${
+                          active
+                            ? 'bg-[#166534] dark:bg-[#15803D] text-white border-[#14532D] dark:border-[#4ADE80]/40'
+                            : 'bg-[#F7FAF8] dark:bg-[#10231B] text-[#172B24] dark:text-[#D1E7D8] border-[#DCE7DF] dark:border-[#294A38] hover:bg-[#F0FDF4] dark:hover:bg-[#1C382C]'
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
 
-            {/* Bus Type Filter */}
-            <div>
-              <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">
-                Bus Category
-              </label>
-              <select
+              <Select
+                id="bus-category"
+                label="Bus Category"
                 value={selectedBusType}
                 onChange={(e) => setSelectedBusType(e.target.value)}
-                className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
                 <option value="ALL">All Categories</option>
                 <option value="Volvo Multi-Axle AC (2+2)">Volvo Multi-Axle AC</option>
                 <option value="AC Sleeper (2+1)">AC Sleeper (2+1)</option>
                 <option value="AC Seater (2+2)">AC Seater (2+2)</option>
                 <option value="Deluxe Express (2+2)">Deluxe Express</option>
-              </select>
-            </div>
+              </Select>
 
-            {/* Max Fare */}
-            <div>
-              <div className="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2">
-                <span>Max Fare</span>
-                <span className="text-emerald-600 dark:text-emerald-400 font-bold">₹{maxFare}</span>
+              {/* Max Fare */}
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-semibold uppercase tracking-wider text-[#172B24] dark:text-[#D1E7D8]">
+                  <span>Max Fare</span>
+                  <span className="text-[#166534] dark:text-[#4ADE80] font-bold">₹{maxFare}</span>
+                </div>
+                <input
+                  type="range"
+                  min="200"
+                  max="2500"
+                  step="50"
+                  value={maxFare}
+                  onChange={(e) => setMaxFare(Number(e.target.value))}
+                  className="w-full accent-[#166534] dark:accent-[#4ADE80] cursor-pointer"
+                />
               </div>
-              <input
-                type="range"
-                min="200"
-                max="2500"
-                step="50"
-                value={maxFare}
-                onChange={(e) => setMaxFare(Number(e.target.value))}
-                className="w-full accent-emerald-600 cursor-pointer"
-              />
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </aside>
 
-        {/* Trips List Area */}
-        <main className="lg:col-span-3 space-y-4">
-          {/* Header count info */}
-          <div className="flex justify-between items-center px-1">
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-              Available Buses ({filteredTrips.length})
-            </h2>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              Date: <span className="font-semibold text-slate-700 dark:text-slate-200">{travelDate}</span>
-            </span>
+        {/* Results Feed */}
+        <main className="lg:col-span-9 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
+            <div>
+              <h1 className="text-xl font-bold text-[#14532D] dark:text-[#F0FDF4]">
+                Available Bus Services ({filteredTrips.length})
+              </h1>
+              <p className="text-xs text-[#475569] dark:text-[#A7C4B0]">
+                {travelDate ? `Travel Date: ${travelDate}` : 'Showing upcoming scheduled departures'} (IST)
+              </p>
+            </div>
           </div>
 
           {loading ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-3">
-              <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Searching real-time schedules from transport network...
-              </p>
-            </div>
+            <LoadingSkeleton rows={4} />
           ) : error ? (
-            <div className="bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-2xl p-6 text-center space-y-2">
-              <AlertCircle className="w-8 h-8 mx-auto text-rose-600" />
-              <p className="text-sm font-bold text-rose-800 dark:text-rose-200">{error}</p>
-            </div>
+            <ErrorState message={error} onRetry={fetchTrips} />
           ) : filteredTrips.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-12 text-center space-y-3">
-              <Bus className="w-12 h-12 mx-auto text-slate-400" />
-              <h3 className="text-base font-bold text-slate-900 dark:text-white">No Matching Trips Found</h3>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">
-                No scheduled buses meet your current stop or filter criteria on {travelDate}. Try selecting another travel date or adjusting the filter thresholds.
-              </p>
-            </div>
+            <EmptyState
+              icon={Bus}
+              title="No Matching Bus Services Found"
+              description="No scheduled trips match your current route, date, or filter settings. Try resetting filters or searching another date."
+              actionLabel="Reset Filters"
+              onAction={resetFilters}
+            />
           ) : (
-            filteredTrips.map((trip) => {
-              const isSeatsLow = trip.availableSeatsCount <= 5;
-              const isSoldOut = trip.availableSeatsCount === 0;
+            <div className="space-y-4">
+              {filteredTrips.map((trip) => {
+                const isSeatsLow = trip.availableSeatsCount > 0 && trip.availableSeatsCount <= 5;
+                const isSoldOut = trip.availableSeatsCount === 0;
+                const boardingName =
+                  trip.boardingStop?.stopId?.name ||
+                  trip.route?.routeName?.split('to')[0]?.trim() ||
+                  'Origin Stop';
+                const droppingName =
+                  trip.droppingStop?.stopId?.name ||
+                  trip.route?.routeName?.split('to')[1]?.trim() ||
+                  'Destination Stop';
 
-              return (
-                <div
-                  key={trip._id}
-                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm hover:shadow-md hover:border-emerald-500/30 transition-all space-y-4"
-                >
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <div>
-                      <div className="flex items-center space-x-2">
-                        <span className="font-extrabold text-slate-900 dark:text-white text-base">
-                          {trip.operator?.name}
-                        </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50 font-bold uppercase">
-                          {trip.operator?.operatorCode}
-                        </span>
+                return (
+                  <Card key={trip._id} hoverable>
+                    <CardContent className="space-y-4">
+                      {/* Top Header Row */}
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3.5 border-b border-[#DCE7DF] dark:border-[#294A38]">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="font-bold text-base text-[#14532D] dark:text-[#F0FDF4]">
+                              {trip.operator?.name}
+                            </h3>
+                            <StatusBadge variant="aqua">{trip.operator?.operatorCode}</StatusBadge>
+                          </div>
+                          <p className="text-xs text-[#475569] dark:text-[#A7C4B0] mt-0.5">
+                            {trip.bus?.busType} • Reg: <span className="font-mono">{trip.bus?.registrationNumber}</span>
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-4 self-end sm:self-auto">
+                          <div className="text-right">
+                            <span className="text-[10px] uppercase tracking-wider text-[#64748B] dark:text-[#A7C4B0] block font-semibold">
+                              Fare / Seat
+                            </span>
+                            <span className="text-xl font-bold text-[#166534] dark:text-[#4ADE80]">
+                              ₹{trip.farePerPassenger}
+                            </span>
+                          </div>
+                          <Button
+                            variant={isSoldOut ? 'outline' : 'primary'}
+                            size="md"
+                            disabled={isSoldOut}
+                            onClick={() => handleOpenSeatSelection(trip)}
+                          >
+                            {isSoldOut ? 'Sold Out' : 'View Seats'}
+                          </Button>
+                        </div>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        {trip.bus?.busType} • Reg: {trip.bus?.registrationNumber}
-                      </p>
-                    </div>
 
-                    <div className="flex items-center space-x-3 self-end sm:self-auto">
-                      <div className="text-right">
-                        <span className="text-[10px] text-slate-400 block uppercase font-medium">Segment Fare</span>
-                        <span className="text-xl font-black text-slate-900 dark:text-white">
-                          ₹{trip.farePerPassenger}
-                        </span>
+                      {/* Timings & Boarding/Dropping Stops */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4">
+                        <div>
+                          <p className="text-lg font-bold text-[#172B24] dark:text-[#F0FDF4]">
+                            {formatTimeIST(trip.departureAt)}
+                          </p>
+                          <p className="text-xs font-semibold text-[#14532D] dark:text-[#D1E7D8] flex items-center gap-1 mt-0.5">
+                            <MapPin className="w-3.5 h-3.5 text-[#166534] dark:text-[#4ADE80] shrink-0" />
+                            <span>Boarding: {boardingName}</span>
+                          </p>
+                          <p className="text-[11px] text-[#64748B] dark:text-[#A7C4B0]">
+                            {formatDateIST(trip.departureAt)}
+                          </p>
+                        </div>
+
+                        <div className="text-center">
+                          <span className="text-xs font-semibold text-[#475569] dark:text-[#D1E7D8] block mb-1.5">
+                            {trip.duration}
+                          </span>
+                          <div className="flex items-center gap-2 text-[#DCE7DF] dark:text-[#294A38]">
+                            <span className="w-2 h-2 rounded-full bg-[#166534] dark:bg-[#4ADE80]" />
+                            <span className="h-0.5 flex-1 bg-current" />
+                            <Bus className="w-4 h-4 text-[#0F766E] dark:text-[#5EEAD4]" />
+                            <span className="h-0.5 flex-1 bg-current" />
+                            <span className="w-2 h-2 rounded-full bg-[#0F766E] dark:bg-[#5EEAD4]" />
+                          </div>
+                          <span className="text-[11px] text-[#64748B] dark:text-[#A7C4B0] mt-1 block">
+                            {trip.route?.totalDistance} km Corridor
+                          </span>
+                        </div>
+
+                        <div className="sm:text-right">
+                          <p className="text-lg font-bold text-[#172B24] dark:text-[#F0FDF4]">
+                            {formatTimeIST(trip.arrivalAt)}
+                          </p>
+                          <p className="text-xs font-semibold text-[#14532D] dark:text-[#D1E7D8] inline-flex items-center gap-1 mt-0.5">
+                            <MapPin className="w-3.5 h-3.5 text-[#0F766E] dark:text-[#5EEAD4] shrink-0" />
+                            <span>Dropping: {droppingName}</span>
+                          </p>
+                          <p className="text-[11px] text-[#64748B] dark:text-[#A7C4B0]">
+                            {formatDateIST(trip.arrivalAt)}
+                          </p>
+                        </div>
                       </div>
-                      <button
-                        onClick={() => handleOpenSeatSelection(trip)}
-                        disabled={isSoldOut}
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                          isSoldOut
-                            ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
-                            : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-sm shadow-emerald-500/20'
-                        }`}
-                      >
-                        {isSoldOut ? 'Sold Out' : 'Select Seats'}
-                      </button>
-                    </div>
-                  </div>
 
-                  {/* Journey Timeline */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 items-center gap-4 py-1">
-                    <div>
-                      <p className="text-lg font-bold text-slate-900 dark:text-white">
-                        {formatTimeIST(trip.departureAt)}
-                      </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                        {trip.route?.routeName?.split('to')[0] || 'Origin'}
-                      </p>
-                    </div>
+                      {/* Amenities & Seat Status Footer */}
+                      <div className="flex flex-wrap justify-between items-center gap-2 pt-3 border-t border-[#DCE7DF]/70 dark:border-[#294A38]/70 text-xs">
+                        <div className="flex flex-wrap gap-1.5">
+                          {(trip.bus?.amenities || []).map((amenity, i) => (
+                            <StatusBadge key={i} variant="neutral">
+                              {amenity}
+                            </StatusBadge>
+                          ))}
+                        </div>
 
-                    <div className="text-center">
-                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 block mb-1">
-                        {trip.duration}
-                      </span>
-                      <div className="flex items-center space-x-2 text-slate-300 dark:text-slate-700">
-                        <div className="w-2 h-2 rounded-full bg-emerald-600"></div>
-                        <div className="h-0.5 flex-1 bg-current"></div>
-                        <Bus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <div className="h-0.5 flex-1 bg-current"></div>
-                        <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+                        <div className="flex items-center gap-1.5 font-semibold">
+                          <Armchair className="w-4 h-4 text-[#64748B] dark:text-[#A7C4B0]" />
+                          <span
+                            className={
+                              isSoldOut
+                                ? 'text-[#B91C1C] dark:text-[#F87171]'
+                                : isSeatsLow
+                                ? 'text-[#B45309] dark:text-[#FBBF24]'
+                                : 'text-[#15803D] dark:text-[#4ADE80]'
+                            }
+                          >
+                            {trip.availableSeatsCount} seats available
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-[10px] text-slate-400 mt-1 block">
-                        {trip.route?.totalDistance} km Route
-                      </span>
-                    </div>
-
-                    <div className="text-left sm:text-right">
-                      <p className="text-lg font-bold text-slate-900 dark:text-white">
-                        {formatTimeIST(trip.arrivalAt)}
-                      </p>
-                      <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">
-                        {trip.route?.routeName?.split('to')[1] || 'Destination'}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Bottom Amenities & Seat status badge */}
-                  <div className="flex flex-wrap justify-between items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-                    <div className="flex flex-wrap gap-1.5">
-                      {trip.bus?.amenities?.map((amenity, i) => (
-                        <span
-                          key={i}
-                          className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px]"
-                        >
-                          {amenity}
-                        </span>
-                      ))}
-                    </div>
-
-                    <div className="flex items-center space-x-2">
-                      <Armchair className="w-3.5 h-3.5 text-slate-400" />
-                      <span
-                        className={`font-bold ${
-                          isSoldOut
-                            ? 'text-rose-600'
-                            : isSeatsLow
-                            ? 'text-amber-600 dark:text-amber-400'
-                            : 'text-emerald-600 dark:text-emerald-400'
-                        }`}
-                      >
-                        {trip.availableSeatsCount} seats available
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
           )}
         </main>
       </div>
 
-      {/* Booking Drawer / Modal */}
-      {activeTrip && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-4xl w-full p-6 space-y-6 my-8 max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="flex justify-between items-center pb-4 border-b border-slate-200 dark:border-slate-800">
-              <div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                  Seat Reservation & Passenger Details
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  {activeTrip.operator?.name} • {activeTrip.bus?.busType} ({activeTrip.bus?.registrationNumber})
-                </p>
-              </div>
-              <button
-                onClick={() => setActiveTrip(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
+      {/* Seat Selection & Booking Modal */}
+      <Modal
+        open={!!activeTrip}
+        onClose={() => setActiveTrip(null)}
+        maxWidth="max-w-4xl"
+        title="Select Seats & Passenger Details"
+        subtitle={
+          activeTrip
+            ? `${activeTrip.operator?.name} • ${activeTrip.bus?.busType} (${activeTrip.bus?.registrationNumber})`
+            : ''
+        }
+      >
+        {activeTrip && (
+          <div className="space-y-6">
             {bookingError && (
-              <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center space-x-2">
+              <div
+                role="alert"
+                className="p-3.5 rounded-lg bg-[#FEE2E2] dark:bg-[#3B1517] border border-[#B91C1C]/30 dark:border-[#F87171]/30 text-[#991B1B] dark:text-[#FEE2E2] text-xs font-medium flex items-center gap-2"
+              >
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{bookingError}</span>
               </div>
             )}
 
-            {/* Seat Map Section */}
-            <div>
-              {loadingSeats ? (
-                <div className="py-12 text-center space-y-2">
-                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-emerald-600" />
-                  <p className="text-xs text-slate-500">Checking seat inventory availability...</p>
-                </div>
-              ) : seatLayoutData ? (
-                <SeatMap
-                  layoutType={seatLayoutData.layoutType}
-                  seats={seatLayoutData.seats}
-                  selectedSeats={selectedSeats}
-                  onSeatToggle={handleSeatToggle}
-                  farePerSeat={activeTrip.farePerPassenger}
-                />
-              ) : null}
-            </div>
+            {loadingSeats ? (
+              <div className="py-12 text-center space-y-2">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto text-[#166534] dark:text-[#4ADE80]" />
+                <p className="text-xs text-[#475569] dark:text-[#A7C4B0]">
+                  Loading real-time seat inventory...
+                </p>
+              </div>
+            ) : seatLayoutData ? (
+              <SeatMap
+                layoutType={seatLayoutData.layoutType}
+                seats={seatLayoutData.seats}
+                selectedSeats={selectedSeats}
+                onSeatToggle={handleSeatToggle}
+                farePerSeat={activeTrip.farePerPassenger}
+              />
+            ) : null}
 
-            {/* Passenger Information Form */}
+            {/* Passenger Details Form */}
             {selectedSeats.length > 0 && (
-              <form onSubmit={handleConfirmBooking} className="space-y-6 pt-4 border-t border-slate-200 dark:border-slate-800">
+              <form
+                onSubmit={handleConfirmBooking}
+                className="space-y-5 pt-4 border-t border-[#DCE7DF] dark:border-[#294A38]"
+              >
                 <div>
-                  <h4 className="font-bold text-slate-900 dark:text-white text-sm mb-1 flex items-center space-x-1.5">
-                    <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                    <span>Passenger Information ({selectedSeats.length} Selected)</span>
+                  <h4 className="font-bold text-[#14532D] dark:text-[#F0FDF4] text-sm flex items-center gap-1.5">
+                    <UserCheck className="w-4 h-4 text-[#0F766E] dark:text-[#5EEAD4]" />
+                    <span>Passenger Information ({selectedSeats.length} Seat{selectedSeats.length > 1 ? 's' : ''})</span>
                   </h4>
-                  <p className="text-xs text-slate-500">
-                    Enter the details for each reserved seat. Tickets will be issued under these names.
+                  <p className="text-xs text-[#475569] dark:text-[#A7C4B0] mt-0.5">
+                    Enter passenger details matching a valid government photo ID for boarding verification.
                   </p>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                   {passengers.map((p, idx) => (
                     <div
                       key={p.seatNumber}
-                      className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3"
+                      className="p-4 rounded-lg bg-[#F7FAF8] dark:bg-[#10231B] border border-[#DCE7DF] dark:border-[#294A38] space-y-3"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-xs text-emerald-600 dark:text-emerald-400">
-                          Seat #{p.seatNumber} Passenger
-                        </span>
+                        <StatusBadge variant="success">Seat {p.seatNumber}</StatusBadge>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                         <div className="sm:col-span-2">
-                          <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
+                          <label className="block text-[11px] font-semibold text-[#172B24] dark:text-[#D1E7D8] uppercase mb-1">
                             Full Name *
                           </label>
                           <input
@@ -594,12 +618,12 @@ export const SearchResultsPage = () => {
                             placeholder="e.g. Ramesh Kumar"
                             value={p.name}
                             onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
-                            className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            className="w-full h-10 px-3 bg-white dark:bg-[#162B22] border border-[#DCE7DF] dark:border-[#294A38] rounded-lg text-xs font-medium text-[#172B24] dark:text-[#F0FDF4] focus:outline-none focus:border-[#166534] dark:focus:border-[#4ADE80]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
+                          <label className="block text-[11px] font-semibold text-[#172B24] dark:text-[#D1E7D8] uppercase mb-1">
                             Age *
                           </label>
                           <input
@@ -610,18 +634,18 @@ export const SearchResultsPage = () => {
                             placeholder="Age"
                             value={p.age}
                             onChange={(e) => handlePassengerChange(idx, 'age', e.target.value)}
-                            className="w-full h-10 px-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            className="w-full h-10 px-3 bg-white dark:bg-[#162B22] border border-[#DCE7DF] dark:border-[#294A38] rounded-lg text-xs font-medium text-[#172B24] dark:text-[#F0FDF4] focus:outline-none focus:border-[#166534] dark:focus:border-[#4ADE80]"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
+                          <label className="block text-[11px] font-semibold text-[#172B24] dark:text-[#D1E7D8] uppercase mb-1">
                             Gender
                           </label>
                           <select
                             value={p.gender}
                             onChange={(e) => handlePassengerChange(idx, 'gender', e.target.value)}
-                            className="w-full h-10 px-2.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            className="w-full h-10 px-2.5 bg-white dark:bg-[#162B22] border border-[#DCE7DF] dark:border-[#294A38] rounded-lg text-xs font-medium text-[#172B24] dark:text-[#F0FDF4] focus:outline-none focus:border-[#166534] dark:focus:border-[#4ADE80]"
                           >
                             <option value="MALE">Male</option>
                             <option value="FEMALE">Female</option>
@@ -633,61 +657,55 @@ export const SearchResultsPage = () => {
                   ))}
                 </div>
 
-                {/* Simulated Payment Notice */}
-                <div className="p-4 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-900 text-teal-900 dark:text-teal-200 text-xs space-y-1">
-                  <div className="flex items-center space-x-1.5 font-bold">
-                    <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                    <span>Simulated Academic Checkout Notice</span>
+                {/* Simulated Academic Checkout Notice */}
+                <div className="p-3.5 rounded-lg bg-[#CCFBF1]/60 dark:bg-[#134E4A]/70 border border-[#0F766E]/25 dark:border-[#5EEAD4]/25 text-[#0F766E] dark:text-[#D1E7D8] text-xs space-y-1">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <ShieldCheck className="w-4 h-4 shrink-0" />
+                    <span>Simulated Academic Booking Confirmation</span>
                   </div>
-                  <p className="text-[11px] text-teal-800 dark:text-teal-300">
-                    This is an independent academic demonstration portal. No real payment gateway is integrated. Clicking Confirm simulates successful ticket payment and generates an authentic PNR.
+                  <p className="text-[11px] leading-relaxed">
+                    MyJourney is an independent academic project. Confirming reserves your selected seats in MongoDB using ACID transactions and issues a verifiable digital PNR without processing real payment charges.
                   </p>
                 </div>
 
-                {/* Total Fare & Submit Actions */}
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                {/* Fare & Submit Footer */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 border-t border-[#DCE7DF] dark:border-[#294A38]">
                   <div>
-                    <span className="text-xs text-slate-500 block uppercase">Total Payable Amount</span>
-                    <span className="text-2xl font-black text-slate-900 dark:text-white">
-                      ₹{selectedSeats.length * activeTrip.farePerPassenger + Math.round(selectedSeats.length * activeTrip.farePerPassenger * 0.05) + 20}
+                    <span className="text-[11px] text-[#64748B] dark:text-[#A7C4B0] uppercase font-semibold block">
+                      Total Payable Amount
                     </span>
-                    <span className="text-[10px] text-slate-400 block">
-                      Incl. 5% GST & ₹20 service fee
+                    <span className="text-2xl font-bold text-[#166534] dark:text-[#4ADE80] font-mono">
+                      ₹{grandTotal}
+                    </span>
+                    <span className="text-[11px] text-[#64748B] dark:text-[#A7C4B0] block">
+                      Base ₹{baseSelectedTotal} + 5% GST (₹{gstAmount}) + ₹{serviceFee} portal fee
                     </span>
                   </div>
 
-                  <div className="flex items-center space-x-3 w-full sm:w-auto">
-                    <button
-                      type="button"
+                  <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                    <Button
+                      variant="outline"
                       onClick={() => setActiveTrip(null)}
-                      className="w-1/2 sm:w-auto px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs hover:bg-slate-100 dark:hover:bg-slate-800"
+                      className="flex-1 sm:flex-initial"
                     >
                       Cancel
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="submit"
-                      disabled={bookingLoading}
-                      className="w-1/2 sm:w-auto px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 flex items-center justify-center space-x-2 cursor-pointer disabled:opacity-50"
+                      variant="primary"
+                      loading={bookingLoading}
+                      className="flex-1 sm:flex-initial"
                     >
-                      {bookingLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Reserving Seats...</span>
-                        </>
-                      ) : (
-                        <>
-                          <CreditCard className="w-4 h-4" />
-                          <span>Confirm & Book Ticket</span>
-                        </>
-                      )}
-                    </button>
+                      <CreditCard className="w-4 h-4" />
+                      <span>Confirm & Book Ticket</span>
+                    </Button>
                   </div>
                 </div>
               </form>
             )}
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 };

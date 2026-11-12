@@ -1,91 +1,113 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Bus, ShieldCheck, PhoneCall, Mail, MapPin, ExternalLink } from 'lucide-react';
+import { BrandLogo } from '../ui/BrandLogo.jsx';
+import { ShieldCheck, PhoneCall, Mail, MapPin } from 'lucide-react';
 
 export const Footer = () => {
   return (
-    <footer className="bg-slate-900 text-slate-300 border-t border-slate-800">
+    <footer className="bg-[#14532D] dark:bg-[#0B1712] text-[#D1E7D8] border-t border-[#166534] dark:border-[#294A38] print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* Brand Col */}
-          <div className="space-y-4 md:col-span-1">
-            <div className="flex items-center space-x-2">
-              <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-600 flex items-center justify-center text-white shadow-sm shadow-emerald-500/20">
-                <Bus className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-xl tracking-tight text-white">
-                Yatra<span className="text-emerald-400">Setu</span>
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Unified public-service transport booking and fleet operations portal. Providing seamless intercity bus ticket reservation, real-time seat inventory, and transparent operations management.
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Brand Column */}
+          <div className="space-y-4">
+            <BrandLogo size="md" variant="light" subtitle="Your Journey. Your Comfort. Your Destination." />
+            <p className="text-xs text-[#D1E7D8] leading-relaxed">
+              A unified public transportation and intercity bus reservation portal designed for transparent scheduling, reliable seat selection, and digital ticket management.
             </p>
-            <div className="flex items-center space-x-2 text-xs text-emerald-400">
-              <ShieldCheck className="w-4 h-4" />
-              <span>TLS 256-Bit Encrypted Bookings</span>
+            <div className="inline-flex items-center gap-2 text-xs text-[#5EEAD4] font-medium bg-[#1C382C]/60 px-3 py-1.5 rounded-lg border border-[#294A38]">
+              <ShieldCheck className="w-4 h-4 shrink-0" />
+              <span>Verified Reservations & Instant PNR</span>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-white text-sm font-semibold uppercase tracking-wider mb-3">Quick Links</h4>
-            <ul className="space-y-2 text-xs text-slate-400">
+            <h4 className="text-[#F0FDF4] text-xs font-bold uppercase tracking-wider mb-4">
+              Quick Links
+            </h4>
+            <ul className="space-y-2.5 text-xs">
               <li>
-                <Link to="/" className="hover:text-emerald-400 transition-colors">Home Portal</Link>
+                <Link to="/" className="hover:text-[#5EEAD4] transition-colors">
+                  Home Portal
+                </Link>
               </li>
               <li>
-                <Link to="/search" className="hover:text-emerald-400 transition-colors">Search Bus Routes</Link>
+                <Link to="/search" className="hover:text-[#5EEAD4] transition-colors">
+                  Search Bus Routes
+                </Link>
               </li>
               <li>
-                <Link to="/my-bookings" className="hover:text-emerald-400 transition-colors">Download Ticket / Check PNR</Link>
+                <Link to="/my-bookings" className="hover:text-[#5EEAD4] transition-colors">
+                  My Bookings & PNR Status
+                </Link>
               </li>
               <li>
-                <Link to="/login" className="hover:text-emerald-400 transition-colors">Staff & Operator Sign In</Link>
+                <Link to="/about" className="hover:text-[#5EEAD4] transition-colors">
+                  About MyJourney
+                </Link>
               </li>
             </ul>
           </div>
 
-          {/* Major Routes */}
+          {/* Support & Policies */}
           <div>
-            <h4 className="text-white text-sm font-semibold uppercase tracking-wider mb-3">Popular Corridors</h4>
-            <ul className="space-y-2 text-xs text-slate-400">
-              <li>Delhi ⇄ Jaipur Express</li>
-              <li>Chandigarh ⇄ Delhi ISBT</li>
-              <li>Amritsar ⇄ Ludhiana Central</li>
-              <li>Delhi ⇄ Agra Taj Expressway</li>
-              <li>Jalandhar ⇄ Chandigarh Shuttle</li>
+            <h4 className="text-[#F0FDF4] text-xs font-bold uppercase tracking-wider mb-4">
+              Support & Booking Info
+            </h4>
+            <ul className="space-y-2.5 text-xs">
+              <li>
+                <Link to="/help" className="hover:text-[#5EEAD4] transition-colors">
+                  Help & Travel Guidelines
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-[#5EEAD4] transition-colors">
+                  Contact Passenger Desk
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="hover:text-[#5EEAD4] transition-colors">
+                  Terms & Conditions
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="hover:text-[#5EEAD4] transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Contact / Academic Demo Info */}
+          {/* Contact Information */}
           <div className="space-y-3">
-            <h4 className="text-white text-sm font-semibold uppercase tracking-wider mb-3">Demo Support & Info</h4>
-            <div className="space-y-2 text-xs text-slate-400">
-              <div className="flex items-center space-x-2">
-                <MapPin className="w-4 h-4 text-slate-500 shrink-0" />
-                <span>ALGIONS AI LABS, New Delhi, India</span>
+            <h4 className="text-[#F0FDF4] text-xs font-bold uppercase tracking-wider mb-4">
+              Contact Information
+            </h4>
+            <div className="space-y-2.5 text-xs">
+              <div className="flex items-start gap-2.5">
+                <MapPin className="w-4 h-4 text-[#5EEAD4] shrink-0 mt-0.5" />
+                <span>Transport Operations Hub, Connaught Place, New Delhi — 110001</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <PhoneCall className="w-4 h-4 text-slate-500 shrink-0" />
-                <span>Toll-Free Helpline: 1800-11-2048</span>
+              <div className="flex items-center gap-2.5">
+                <PhoneCall className="w-4 h-4 text-[#5EEAD4] shrink-0" />
+                <span>Helpline: 1800-11-2048 (Toll-Free)</span>
               </div>
-              <div className="flex items-center space-x-2">
-                <Mail className="w-4 h-4 text-slate-500 shrink-0" />
-                <span>support@yatrasetu.demo</span>
+              <div className="flex items-center gap-2.5">
+                <Mail className="w-4 h-4 text-[#5EEAD4] shrink-0" />
+                <span>support@myjourney.in</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Mandatory Academic Disclaimer & Copyright */}
-        <div className="mt-12 pt-6 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 space-y-3 sm:space-y-0">
-          <p>© {new Date().getFullYear()} YatraSetu. All rights reserved.</p>
-          <div className="p-2 rounded bg-slate-800/80 text-amber-300 font-medium text-[11px] text-center border border-slate-700/60">
-            ⚠️ Independent academic demonstration project for ALGIONS AI LABS PRIVATE LIMITED placement evaluation. Not an official government website.
-          </div>
+        {/* Bottom Copyright & Mandatory Academic Disclaimer */}
+        <div className="mt-10 pt-6 border-t border-[#294A38] flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#A7C4B0]">
+          <p>© {new Date().getFullYear()} MyJourney Portal. All rights reserved.</p>
+          <p className="px-3 py-1.5 rounded-lg bg-[#10231B] border border-[#294A38] text-[#D1E7D8] text-[11px] text-center">
+            MyJourney is an independent academic project and is not an official government website.
+          </p>
         </div>
       </div>
     </footer>
   );
 };
-

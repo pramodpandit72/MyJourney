@@ -1,19 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import {
-  Calendar,
-  Plus,
-  Bus,
-  Clock,
-  MapPin,
-  AlertCircle,
-  Loader2,
-  X,
-  XCircle,
-  CheckCircle2
-} from 'lucide-react';
+  TableContainer,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Modal,
+  ConfirmDialog,
+  Button,
+  Input,
+  Select,
+  StatusBadge,
+  LoadingSkeleton,
+  ErrorState,
+  EmptyState
+} from '../../components/ui/index.js';
+import { Calendar, Plus } from 'lucide-react';
 
 export const AdminTripsPage = () => {
+  const { toast } = useToast();
   const [trips, setTrips] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [buses, setBuses] = useState([]);
@@ -32,8 +41,13 @@ export const AdminTripsPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
+  // Cancel confirmation dialog
+  const [cancelTripId, setCancelTripId] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
+
   const fetchAllData = async () => {
     setLoading(true);
+    setError('');
     try {
       const [tRes, rRes, bRes, oRes] = await Promise.all([
         api.get('/admin/trips'),
@@ -66,7 +80,6 @@ export const AdminTripsPage = () => {
   }, []);
 
   const openCreateModal = () => {
-    // Generate default future datetime string YYYY-MM-DDTHH:mm
     const now = new Date();
     const dep = new Date(now.getTime() + 6 * 60 * 60 * 1000);
     const arr = new Date(dep.getTime() + 5 * 60 * 60 * 1000);
@@ -100,6 +113,7 @@ export const AdminTripsPage = () => {
 
       await api.post('/admin/trips', payload);
       setModalOpen(false);
+      toast.success('New intercity trip scheduled and seat inventory initialized.');
       await fetchAllData();
     } catch (err) {
       setFormError(err.message || 'Failed to schedule trip.');
@@ -108,13 +122,18 @@ export const AdminTripsPage = () => {
     }
   };
 
-  const handleCancelTrip = async (id) => {
-    if (!window.confirm('Are you sure you want to cancel this scheduled trip?')) return;
+  const handleConfirmCancelTrip = async () => {
+    if (!cancelTripId) return;
+    setCancelling(true);
     try {
-      await api.put(`/admin/trips/${id}/cancel`);
+      await api.put(`/admin/trips/${cancelTripId}/cancel`);
+      toast.success('Trip cancelled successfully.');
+      setCancelTripId(null);
       await fetchAllData();
     } catch (err) {
-      alert(err.message || 'Failed to cancel trip.');
+      toast.error(err.message || 'Failed to cancel trip.');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -131,233 +150,200 @@ export const AdminTripsPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+          <span className="text-[11px] font-bold text-[#0F766E] dark:text-[#5EEAD4] uppercase tracking-wider">
             Dispatch Center
           </span>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#14532D] dark:text-[#F0FDF4] mt-0.5">
             Trip Schedules & Dispatch
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-[#475569] dark:text-[#A7C4B0]">
             Publish new transit trips, assign fleets, set base fares, and initialize seat inventories.
           </p>
         </div>
 
-        <button
-          onClick={openCreateModal}
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-emerald-600/20"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Schedule New Trip</span>
-        </button>
+        <Button variant="primary" icon={Plus} onClick={openCreateModal}>
+          Schedule New Trip
+        </Button>
       </div>
 
       {loading ? (
-        <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading trips...</p>
-        </div>
+        <LoadingSkeleton rows={5} />
       ) : error ? (
-        <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 text-center">
-          <AlertCircle className="w-6 h-6 mx-auto mb-2 text-rose-600" />
-          <p className="text-sm font-bold">{error}</p>
-        </div>
+        <ErrorState message={error} onRetry={fetchAllData} />
+      ) : trips.length === 0 ? (
+        <EmptyState
+          icon={Calendar}
+          title="No Scheduled Trips"
+          description="Schedule your first bus departure linking an active route, fleet bus, and operator."
+          action={
+            <Button variant="primary" size="sm" icon={Plus} onClick={openCreateModal}>
+              Schedule Trip
+            </Button>
+          }
+        />
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="py-3 px-5">Corridor Route</th>
-                  <th className="py-3 px-5">Bus & Operator</th>
-                  <th className="py-3 px-5">Departure (IST)</th>
-                  <th className="py-3 px-5">Arrival (IST)</th>
-                  <th className="py-3 px-5">Base Fare</th>
-                  <th className="py-3 px-5">Status</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
-                {trips.map((t) => (
-                  <tr key={t._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                    <td className="py-4 px-5">
-                      <p className="font-bold text-slate-900 dark:text-white">{t.routeId?.routeName || 'N/A'}</p>
-                      <p className="text-[10px] text-slate-400">{t.routeId?.routeCode}</p>
-                    </td>
-                    <td className="py-4 px-5">
-                      <p className="font-bold">{t.busId?.registrationNumber} ({t.busId?.busType})</p>
-                      <p className="text-[10px] text-slate-500">{t.operatorId?.name}</p>
-                    </td>
-                    <td className="py-4 px-5 font-semibold text-slate-900 dark:text-white">{formatIST(t.departureAt)}</td>
-                    <td className="py-4 px-5 font-medium text-slate-500">{formatIST(t.arrivalAt)}</td>
-                    <td className="py-4 px-5 font-bold font-mono text-emerald-600 dark:text-emerald-400">
-                      ₹{t.baseFare}
-                    </td>
-                    <td className="py-4 px-5">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                          t.status === 'SCHEDULED'
-                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                            : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
-                        }`}
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Corridor Route</Th>
+                <Th>Bus & Operator</Th>
+                <Th>Departure (IST)</Th>
+                <Th>Arrival (IST)</Th>
+                <Th>Base Fare</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {trips.map((t) => (
+                <Tr key={t._id}>
+                  <Td>
+                    <p className="font-bold text-[#14532D] dark:text-[#F0FDF4]">
+                      {t.routeId?.routeName || 'N/A'}
+                    </p>
+                    <p className="text-[11px] font-mono text-[#0F766E] dark:text-[#5EEAD4]">
+                      {t.routeId?.routeCode}
+                    </p>
+                  </Td>
+                  <Td>
+                    <p className="font-semibold text-[#172B24] dark:text-[#F0FDF4]">
+                      {t.busId?.registrationNumber} ({t.busId?.busType})
+                    </p>
+                    <p className="text-[11px] text-[#64748B] dark:text-[#A7C4B0]">
+                      {t.operatorId?.name}
+                    </p>
+                  </Td>
+                  <Td className="font-semibold text-[#172B24] dark:text-[#F0FDF4]">
+                    {formatIST(t.departureAt)}
+                  </Td>
+                  <Td className="text-[#475569] dark:text-[#D1E7D8]">{formatIST(t.arrivalAt)}</Td>
+                  <Td className="font-bold font-mono text-[#15803D] dark:text-[#4ADE80]">
+                    ₹{t.baseFare}
+                  </Td>
+                  <Td>
+                    <StatusBadge status={t.status} />
+                  </Td>
+                  <Td className="text-right">
+                    {t.status === 'SCHEDULED' && (
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => setCancelTripId(t._id)}
                       >
-                        {t.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-5 text-right">
-                      {t.status === 'SCHEDULED' && (
-                        <button
-                          onClick={() => handleCancelTrip(t._id)}
-                          className="px-2.5 py-1 rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold text-[11px]"
-                        >
-                          Cancel Trip
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+                        Cancel Trip
+                      </Button>
+                    )}
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
       )}
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 max-w-lg w-full space-y-5 shadow-2xl">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                Schedule New Intercity Trip
-              </h3>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
+      {/* Schedule Modal */}
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Schedule New Intercity Trip"
+        size="lg"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {formError && (
+            <div className="p-3 rounded-lg bg-[#FEE2E2] dark:bg-[#3B1517] border border-[#B91C1C]/30 text-[#991B1B] dark:text-[#FEE2E2] text-xs font-semibold">
+              {formError}
             </div>
+          )}
 
-            {formError && (
-              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold">
-                {formError}
-              </div>
-            )}
+          <Select
+            label="Route Corridor *"
+            value={routeId}
+            onChange={(e) => setRouteId(e.target.value)}
+            required
+          >
+            {routes.map((r) => (
+              <option key={r._id} value={r._id}>
+                {r.routeName} ({r.routeCode})
+              </option>
+            ))}
+          </Select>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                  Route Corridor *
-                </label>
-                <select
-                  value={routeId}
-                  onChange={(e) => setRouteId(e.target.value)}
-                  required
-                  className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                >
-                  {routes.map((r) => (
-                    <option key={r._id} value={r._id}>
-                      {r.routeName} ({r.routeCode})
-                    </option>
-                  ))}
-                </select>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Select
+              label="Bus Fleet Vehicle *"
+              value={busId}
+              onChange={(e) => setBusId(e.target.value)}
+              required
+            >
+              {buses.map((b) => (
+                <option key={b._id} value={b._id}>
+                  {b.registrationNumber} ({b.busType})
+                </option>
+              ))}
+            </Select>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Bus Fleet Vehicle *
-                  </label>
-                  <select
-                    value={busId}
-                    onChange={(e) => setBusId(e.target.value)}
-                    required
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  >
-                    {buses.map((b) => (
-                      <option key={b._id} value={b._id}>
-                        {b.registrationNumber} ({b.busType})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <Select
+              label="Operating Agency *"
+              value={operatorId}
+              onChange={(e) => setOperatorId(e.target.value)}
+              required
+            >
+              {operators.map((op) => (
+                <option key={op._id} value={op._id}>
+                  {op.name}
+                </option>
+              ))}
+            </Select>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Operating Agency *
-                  </label>
-                  <select
-                    value={operatorId}
-                    onChange={(e) => setOperatorId(e.target.value)}
-                    required
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  >
-                    {operators.map((op) => (
-                      <option key={op._id} value={op._id}>
-                        {op.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <Input
+              label="Departure Time *"
+              type="datetime-local"
+              required
+              value={departureAt}
+              onChange={(e) => setDepartureAt(e.target.value)}
+            />
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Departure Time *
-                  </label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={departureAt}
-                    onChange={(e) => setDepartureAt(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
+            <Input
+              label="Arrival Time *"
+              type="datetime-local"
+              required
+              value={arrivalAt}
+              onChange={(e) => setArrivalAt(e.target.value)}
+            />
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Arrival Time *
-                  </label>
-                  <input
-                    type="datetime-local"
-                    required
-                    value={arrivalAt}
-                    onChange={(e) => setArrivalAt(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Base Fare (₹ INR) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    value={baseFare}
-                    onChange={(e) => setBaseFare(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 disabled:opacity-50"
-                >
-                  {submitting ? 'Scheduling...' : 'Schedule Trip & Initialize Seats'}
-                </button>
-              </div>
-            </form>
+            <div className="sm:col-span-2">
+              <Input
+                label="Base Fare (₹ INR) *"
+                type="number"
+                required
+                min={1}
+                value={baseFare}
+                onChange={(e) => setBaseFare(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-[#DCE7DF] dark:border-[#294A38]">
+            <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" loading={submitting}>
+              Publish Trip & Seats
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      <ConfirmDialog
+        open={Boolean(cancelTripId)}
+        onClose={() => setCancelTripId(null)}
+        onConfirm={handleConfirmCancelTrip}
+        loading={cancelling}
+        title="Cancel Scheduled Trip?"
+        message="This will mark the scheduled departure as cancelled. Existing bookings will remain visible in the ledger for review."
+        confirmLabel="Confirm Cancellation"
+      />
     </div>
   );
 };
-

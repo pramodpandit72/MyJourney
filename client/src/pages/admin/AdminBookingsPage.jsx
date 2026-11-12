@@ -2,17 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../services/api.js';
 import {
-  Ticket,
-  Search,
-  Filter,
-  Eye,
-  Loader2,
-  AlertCircle,
-  Clock,
-  Bus,
-  CheckCircle2,
-  XCircle
-} from 'lucide-react';
+  TableContainer,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Pagination,
+  Button,
+  Input,
+  Select,
+  StatusBadge,
+  LoadingSkeleton,
+  ErrorState,
+  EmptyState
+} from '../../components/ui/index.js';
+import { Ticket, Search, Eye } from 'lucide-react';
 
 export const AdminBookingsPage = () => {
   const [bookings, setBookings] = useState([]);
@@ -21,10 +27,11 @@ export const AdminBookingsPage = () => {
   const [pnrSearch, setPnrSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [page, setPage] = useState(1);
-  const [pagination, setPagination] = useState({ total: 0, pages: 1 });
+  const [pagination, setPagination] = useState({ total: 0, pages: 1, page: 1 });
 
   const fetchBookings = async () => {
     setLoading(true);
+    setError('');
     try {
       const params = new URLSearchParams({
         page: page.toString(),
@@ -35,7 +42,7 @@ export const AdminBookingsPage = () => {
 
       const res = await api.get(`/admin/bookings?${params.toString()}`);
       setBookings(res?.data?.bookings || []);
-      setPagination(res?.data?.pagination || { total: 0, pages: 1 });
+      setPagination(res?.data?.pagination || { total: 0, pages: 1, page });
     } catch (err) {
       setError(err.message || 'Failed to load bookings.');
     } finally {
@@ -64,151 +71,131 @@ export const AdminBookingsPage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+          <span className="text-[11px] font-bold text-[#0F766E] dark:text-[#5EEAD4] uppercase tracking-wider">
             Ticketing Ledger
           </span>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#14532D] dark:text-[#F0FDF4] mt-0.5">
             Global Booking Registry
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-[#475569] dark:text-[#A7C4B0]">
             Real-time database records of all passenger ticket reservations and cancellations.
           </p>
         </div>
 
-        {/* Filter controls */}
-        <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2 w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-            <input
+        <form onSubmit={handleSearchSubmit} className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <div className="w-full sm:w-56">
+            <Input
+              icon={Search}
               type="text"
               placeholder="Search PNR..."
               value={pnrSearch}
               onChange={(e) => setPnrSearch(e.target.value)}
-              className="w-full h-10 pl-9 pr-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="uppercase font-mono"
             />
           </div>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            className="h-10 px-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-          >
-            <option value="ALL">All Statuses</option>
-            <option value="CONFIRMED">CONFIRMED</option>
-            <option value="CANCELLED">CANCELLED</option>
-          </select>
+          <div className="w-40">
+            <Select
+              value={statusFilter}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="ALL">All Statuses</option>
+              <option value="CONFIRMED">CONFIRMED</option>
+              <option value="CANCELLED">CANCELLED</option>
+            </Select>
+          </div>
+
+          <Button type="submit" variant="primary" size="md">
+            Filter
+          </Button>
         </form>
       </div>
 
       {loading ? (
-        <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading bookings registry...</p>
-        </div>
+        <LoadingSkeleton rows={6} />
       ) : error ? (
-        <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 text-center">
-          <AlertCircle className="w-6 h-6 mx-auto mb-2 text-rose-600" />
-          <p className="text-sm font-bold">{error}</p>
-        </div>
+        <ErrorState message={error} onRetry={fetchBookings} />
+      ) : bookings.length === 0 ? (
+        <EmptyState
+          icon={Ticket}
+          title="No Matching Bookings"
+          description="No reservations match your PNR query or status filter."
+        />
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="py-3 px-5">PNR</th>
-                  <th className="py-3 px-5">Primary Passenger / User</th>
-                  <th className="py-3 px-5">Route & Operator</th>
-                  <th className="py-3 px-5">Seats</th>
-                  <th className="py-3 px-5">Booking Date</th>
-                  <th className="py-3 px-5">Total Paid</th>
-                  <th className="py-3 px-5">Status</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
-                {bookings.map((b) => (
-                  <tr key={b._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                    <td className="py-4 px-5">
-                      <span className="font-mono font-black text-sm text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-900">
-                        {b.pnr}
-                      </span>
-                    </td>
-                    <td className="py-4 px-5">
-                      <p className="font-bold text-slate-900 dark:text-white">
-                        {b.passengers?.[0]?.name || b.userId?.name || 'N/A'}
-                      </p>
-                      <p className="text-[10px] text-slate-400 font-mono">{b.userId?.email}</p>
-                    </td>
-                    <td className="py-4 px-5">
-                      <p className="font-bold">{b.tripId?.routeId?.routeName || 'N/A'}</p>
-                      <p className="text-[10px] text-slate-500">{b.tripId?.operatorId?.name}</p>
-                    </td>
-                    <td className="py-4 px-5 font-bold">
-                      {b.seatNumbers?.join(', ')} ({b.seatNumbers?.length} seats)
-                    </td>
-                    <td className="py-4 px-5 font-medium text-slate-500">{formatIST(b.bookingDate)}</td>
-                    <td className="py-4 px-5 font-black font-mono text-emerald-600 dark:text-emerald-400">
-                      ₹{b.totalAmount}
-                    </td>
-                    <td className="py-4 px-5">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                          b.status === 'CONFIRMED'
-                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                            : 'bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
-                        }`}
-                      >
-                        {b.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-5 text-right">
-                      <Link
-                        to={`/ticket/${b.pnr}`}
-                        className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white font-bold transition-all text-[11px]"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Ticket</span>
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>PNR</Th>
+                <Th>Primary Passenger / User</Th>
+                <Th>Route & Operator</Th>
+                <Th>Seats</Th>
+                <Th>Booking Date</Th>
+                <Th>Total Paid</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {bookings.map((b) => (
+                <Tr key={b._id}>
+                  <Td>
+                    <span className="font-mono font-bold text-xs text-[#166534] dark:text-[#4ADE80] bg-[#DCFCE7] dark:bg-[#234B35] px-2 py-1 rounded border border-[#166534]/20 dark:border-[#4ADE80]/30">
+                      {b.pnr}
+                    </span>
+                  </Td>
+                  <Td>
+                    <p className="font-bold text-[#14532D] dark:text-[#F0FDF4]">
+                      {b.passengers?.[0]?.name || b.userId?.name || 'N/A'}
+                    </p>
+                    <p className="text-[11px] text-[#64748B] dark:text-[#A7C4B0] font-mono">
+                      {b.userId?.email || '—'}
+                    </p>
+                  </Td>
+                  <Td>
+                    <p className="font-semibold text-[#172B24] dark:text-[#F0FDF4]">
+                      {b.tripId?.routeId?.routeName || 'N/A'}
+                    </p>
+                    <p className="text-[11px] text-[#64748B] dark:text-[#A7C4B0]">
+                      {b.tripId?.operatorId?.name || '—'}
+                    </p>
+                  </Td>
+                  <Td className="font-semibold font-mono">
+                    {b.seatNumbers?.join(', ')} ({b.seatNumbers?.length})
+                  </Td>
+                  <Td className="text-[#475569] dark:text-[#D1E7D8] whitespace-nowrap">
+                    {formatIST(b.bookingDate)}
+                  </Td>
+                  <Td className="font-bold font-mono text-[#15803D] dark:text-[#4ADE80]">
+                    ₹{b.totalAmount}
+                  </Td>
+                  <Td>
+                    <StatusBadge status={b.status} />
+                  </Td>
+                  <Td className="text-right">
+                    <Link to={`/ticket/${b.pnr}`}>
+                      <Button variant="outline" size="sm" icon={Eye}>
+                        Ticket
+                      </Button>
+                    </Link>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
 
-          {/* Pagination */}
-          {pagination.pages > 1 && (
-            <div className="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs">
-              <span className="text-slate-500">
-                Page {pagination.page} of {pagination.pages} ({pagination.total} bookings total)
-              </span>
-              <div className="flex space-x-2">
-                <button
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 disabled:opacity-40"
-                >
-                  Previous
-                </button>
-                <button
-                  disabled={page >= pagination.pages}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 disabled:opacity-40"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          <Pagination
+            page={pagination.page || page}
+            totalPages={pagination.pages}
+            onPageChange={(next) => setPage(next)}
+          />
+        </TableContainer>
       )}
     </div>
   );
 };
-

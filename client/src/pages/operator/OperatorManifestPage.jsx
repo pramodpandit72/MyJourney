@@ -2,16 +2,22 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../../services/api.js';
 import {
-  Users,
-  Printer,
-  Bus,
-  Clock,
-  Calendar,
-  AlertCircle,
-  Loader2,
-  FileCheck2,
-  Download
-} from 'lucide-react';
+  Card,
+  CardContent,
+  TableContainer,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Select,
+  Button,
+  LoadingSkeleton,
+  ErrorState,
+  EmptyState
+} from '../../components/ui/index.js';
+import { Users, Printer } from 'lucide-react';
 
 export const OperatorManifestPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,7 +30,6 @@ export const OperatorManifestPage = () => {
   const [manifestLoading, setManifestLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // 1. Fetch available trips for dropdown
   useEffect(() => {
     const fetchTrips = async () => {
       try {
@@ -44,7 +49,6 @@ export const OperatorManifestPage = () => {
     fetchTrips();
   }, []);
 
-  // 2. Fetch manifest whenever selectedTripId changes
   useEffect(() => {
     if (!selectedTripId) return;
 
@@ -71,10 +75,6 @@ export const OperatorManifestPage = () => {
     setSearchParams({ tripId: newId });
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const formatIST = (dateStr) => {
     if (!dateStr) return 'N/A';
     return new Date(dateStr).toLocaleString('en-IN', {
@@ -87,150 +87,154 @@ export const OperatorManifestPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 print:hidden">
         <div>
-          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+          <span className="text-[11px] font-bold text-[#0F766E] dark:text-[#5EEAD4] uppercase tracking-wider">
             Conductor & Driver Dispatch
           </span>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#14532D] dark:text-[#F0FDF4] mt-0.5">
             Official Passenger Manifest
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-[#475569] dark:text-[#A7C4B0]">
             Verified boarding manifest containing confirmed passengers and assigned seat numbers.
           </p>
         </div>
 
-        <div className="flex items-center space-x-3 w-full sm:w-auto">
-          {/* Trip Selector Dropdown */}
-          <select
-            value={selectedTripId}
-            onChange={handleTripChange}
-            disabled={loading}
-            className="h-10 px-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-emerald-500 focus:outline-none flex-1 sm:flex-initial"
-          >
-            {trips.map((t) => (
-              <option key={t._id} value={t._id}>
-                {t.routeId?.routeName} ({t.busId?.registrationNumber})
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+          <div className="flex-1 sm:w-80">
+            <Select value={selectedTripId} onChange={handleTripChange} disabled={loading}>
+              {trips.map((t) => (
+                <option key={t._id} value={t._id}>
+                  {t.routeId?.routeName} ({t.busId?.registrationNumber})
+                </option>
+              ))}
+            </Select>
+          </div>
 
-          <button
-            onClick={handlePrint}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-sm"
-          >
-            <Printer className="w-4 h-4" />
-            <span>Print Manifest</span>
-          </button>
+          <Button variant="primary" icon={Printer} onClick={() => window.print()}>
+            Print Manifest
+          </Button>
         </div>
       </div>
 
       {manifestLoading ? (
-        <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-            Generating passenger manifest...
-          </p>
-        </div>
+        <LoadingSkeleton rows={6} />
       ) : error ? (
-        <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 text-center">
-          <AlertCircle className="w-6 h-6 mx-auto mb-2 text-rose-600" />
-          <p className="text-sm font-bold">{error}</p>
-        </div>
+        <ErrorState message={error} />
       ) : manifestData ? (
         <div className="space-y-6">
-          {/* Trip Summary Card */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm print:border-black">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
-              <div>
-                <span className="text-slate-400 uppercase font-bold text-[10px] block">Assigned Corridor</span>
-                <p className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
-                  {manifestData.trip?.routeName}
-                </p>
-              </div>
-
-              <div>
-                <span className="text-slate-400 uppercase font-bold text-[10px] block">Vehicle & Class</span>
-                <p className="font-bold text-slate-900 dark:text-white mt-0.5">
-                  {manifestData.trip?.busRegistration}
-                </p>
-                <p className="text-[11px] text-slate-500">{manifestData.trip?.busType}</p>
-              </div>
-
-              <div>
-                <span className="text-slate-400 uppercase font-bold text-[10px] block">Departure Schedule</span>
-                <p className="font-bold text-slate-900 dark:text-white mt-0.5">
-                  {formatIST(manifestData.trip?.departureAt)}
-                </p>
-              </div>
-
-              <div>
-                <span className="text-slate-400 uppercase font-bold text-[10px] block">Confirmed Occupancy</span>
-                <p className="text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
-                  {manifestData.stats?.confirmedCount} / {manifestData.stats?.totalSeats} Seats ({manifestData.stats?.occupancyPercentage}%)
-                </p>
-              </div>
-            </div>
+          {/* Print Header */}
+          <div className="hidden print:block border-b-2 border-[#14532D] pb-3 mb-4">
+            <h2 className="text-lg font-bold text-[#14532D]">MyJourney — Official Conductor Passenger Manifest</h2>
+            <p className="text-xs text-[#475569]">Generated at {new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</p>
           </div>
 
+          {/* Trip Summary Card */}
+          <Card className="print:bg-white print:text-[#172B24] print:border-[#DCE7DF]">
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
+                <div>
+                  <span className="text-[#64748B] dark:text-[#A7C4B0] uppercase font-bold text-[10px] block">
+                    Assigned Corridor
+                  </span>
+                  <p className="text-base font-bold text-[#14532D] dark:text-[#F0FDF4] mt-0.5">
+                    {manifestData.trip?.routeName}
+                  </p>
+                </div>
+
+                <div>
+                  <span className="text-[#64748B] dark:text-[#A7C4B0] uppercase font-bold text-[10px] block">
+                    Vehicle & Class
+                  </span>
+                  <p className="font-bold text-[#172B24] dark:text-[#F0FDF4] mt-0.5">
+                    {manifestData.trip?.busRegistration}
+                  </p>
+                  <p className="text-[11px] text-[#475569] dark:text-[#A7C4B0]">
+                    {manifestData.trip?.busType}
+                  </p>
+                </div>
+
+                <div>
+                  <span className="text-[#64748B] dark:text-[#A7C4B0] uppercase font-bold text-[10px] block">
+                    Departure Schedule
+                  </span>
+                  <p className="font-bold text-[#172B24] dark:text-[#F0FDF4] mt-0.5">
+                    {formatIST(manifestData.trip?.departureAt)}
+                  </p>
+                </div>
+
+                <div>
+                  <span className="text-[#64748B] dark:text-[#A7C4B0] uppercase font-bold text-[10px] block">
+                    Confirmed Occupancy
+                  </span>
+                  <p className="text-base font-bold text-[#15803D] dark:text-[#4ADE80] mt-0.5">
+                    {manifestData.stats?.confirmedCount} / {manifestData.stats?.totalSeats} Seats ({manifestData.stats?.occupancyPercentage}%)
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Manifest Table */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm print:border-black">
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
-              <span className="font-bold text-xs uppercase tracking-wider text-slate-700 dark:text-slate-200">
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#14532D] dark:text-[#D1E7D8]">
                 Confirmed Passengers List ({manifestData.manifest?.length || 0})
-              </span>
-              <span className="text-[11px] text-slate-400 italic">
-                * Note: Cancelled bookings have been strictly excluded from this manifest.
+              </h2>
+              <span className="text-[11px] text-[#64748B] dark:text-[#A7C4B0] italic">
+                * Cancelled bookings are strictly excluded from this manifest.
               </span>
             </div>
 
             {manifestData.manifest?.length === 0 ? (
-              <div className="p-12 text-center text-slate-500 text-xs">
-                No confirmed passengers booked on this scheduled trip yet.
-              </div>
+              <EmptyState
+                icon={Users}
+                title="No Confirmed Passengers"
+                description="No confirmed seat reservations exist for this scheduled departure yet."
+              />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                      <th className="py-3 px-4">Seat #</th>
-                      <th className="py-3 px-4">Passenger Name</th>
-                      <th className="py-3 px-4">Age / Gender</th>
-                      <th className="py-3 px-4">PNR</th>
-                      <th className="py-3 px-4">Boarding Stop</th>
-                      <th className="py-3 px-4">Dropping Stop</th>
-                      <th className="py-3 px-4">Contact Phone</th>
-                      <th className="py-3 px-4 text-right">Verification</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
+              <TableContainer className="print:border-[#DCE7DF]">
+                <Table>
+                  <Thead>
+                    <Tr>
+                      <Th>Seat #</Th>
+                      <Th>Passenger Name</Th>
+                      <Th>Age / Gender</Th>
+                      <Th>PNR</Th>
+                      <Th>Boarding Stop</Th>
+                      <Th>Dropping Stop</Th>
+                      <Th>Contact Phone</Th>
+                      <Th className="text-right">Boarded</Th>
+                    </Tr>
+                  </Thead>
+                  <Tbody>
                     {manifestData.manifest.map((p, i) => (
-                      <tr key={i} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                        <td className="py-3.5 px-4 font-black">
-                          <span className="px-2.5 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
+                      <Tr key={i}>
+                        <Td>
+                          <span className="px-2.5 py-1 rounded-md font-mono font-bold bg-[#DCFCE7] dark:bg-[#234B35] text-[#14532D] dark:text-[#4ADE80]">
                             {p.seatNumber}
                           </span>
-                        </td>
-                        <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
+                        </Td>
+                        <Td className="font-bold text-[#14532D] dark:text-[#F0FDF4]">
                           {p.passengerName}
-                        </td>
-                        <td className="py-3.5 px-4 text-slate-500">
+                        </Td>
+                        <Td className="text-[#475569] dark:text-[#D1E7D8]">
                           {p.age} / {p.gender}
-                        </td>
-                        <td className="py-3.5 px-4 font-mono font-bold text-teal-600 dark:text-teal-400">
+                        </Td>
+                        <Td className="font-mono font-bold text-[#0F766E] dark:text-[#5EEAD4]">
                           {p.pnr}
-                        </td>
-                        <td className="py-3.5 px-4 font-medium">{p.boardingStop}</td>
-                        <td className="py-3.5 px-4 font-medium">{p.droppingStop}</td>
-                        <td className="py-3.5 px-4 font-mono text-slate-500">{p.phone}</td>
-                        <td className="py-3.5 px-4 text-right">
-                          <div className="w-5 h-5 rounded border-2 border-slate-300 dark:border-slate-600 inline-block"></div>
-                        </td>
-                      </tr>
+                        </Td>
+                        <Td className="font-medium">{p.boardingStop}</Td>
+                        <Td className="font-medium">{p.droppingStop}</Td>
+                        <Td className="font-mono text-[#475569] dark:text-[#A7C4B0]">{p.phone}</Td>
+                        <Td className="text-right">
+                          <div className="w-5 h-5 rounded border-2 border-[#DCE7DF] dark:border-[#294A38] inline-block" />
+                        </Td>
+                      </Tr>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </Tbody>
+                </Table>
+              </TableContainer>
             )}
           </div>
         </div>
@@ -238,4 +242,3 @@ export const OperatorManifestPage = () => {
     </div>
   );
 };
-

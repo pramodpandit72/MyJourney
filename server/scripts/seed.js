@@ -73,7 +73,7 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
       {
         name: 'Delhi State Road Transport Corporation (DSRTC)',
         operatorCode: 'DSRTC',
-        contactEmail: 'dsrtc.ops@yatrasetu.gov.in',
+        contactEmail: 'dsrtc.ops@myjourney.in',
         phone: '+91-11-23860255',
         address: 'ISBT Kashmere Gate, New Delhi',
         status: 'ACTIVE'
@@ -81,7 +81,7 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
       {
         name: 'Rajasthan State Road Transport Corporation (RSRTC)',
         operatorCode: 'RSRTC',
-        contactEmail: 'rsrtc.ops@yatrasetu.gov.in',
+        contactEmail: 'rsrtc.ops@myjourney.in',
         phone: '+91-141-2200388',
         address: 'Parivahan Marg, Chomu House, Jaipur',
         status: 'ACTIVE'
@@ -89,7 +89,7 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
       {
         name: 'Punjab State Roadways (PUNBUS)',
         operatorCode: 'PUNBUS',
-        contactEmail: 'punbus.ops@yatrasetu.gov.in',
+        contactEmail: 'punbus.ops@myjourney.in',
         phone: '+91-172-2704255',
         address: 'Sector 17, Chandigarh',
         status: 'ACTIVE'
@@ -110,14 +110,16 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
     const usersData = [
       {
         name: 'Chief Transport Administrator',
-        email: 'admin@yatrasetu.gov.in',
+        email: 'admin@myjourney.in',
+        legacyEmail: 'admin@yatrasetu.gov.in',
         passwordHash,
         role: USER_ROLES.ADMIN,
         phone: '+91-9876543210'
       },
       {
         name: 'Delhi Fleet Manager',
-        email: 'operator.delhi@yatrasetu.gov.in',
+        email: 'operator.delhi@myjourney.in',
+        legacyEmail: 'operator.delhi@yatrasetu.gov.in',
         passwordHash,
         role: USER_ROLES.OPERATOR,
         operatorId: operatorDocs[0]._id,
@@ -125,7 +127,8 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
       },
       {
         name: 'Jaipur Depot Officer',
-        email: 'operator.jaipur@yatrasetu.gov.in',
+        email: 'operator.jaipur@myjourney.in',
+        legacyEmail: 'operator.jaipur@yatrasetu.gov.in',
         passwordHash,
         role: USER_ROLES.OPERATOR,
         operatorId: operatorDocs[1]._id,
@@ -133,7 +136,8 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
       },
       {
         name: 'Vikram Sharma (Passenger)',
-        email: 'customer@yatrasetu.gov.in',
+        email: 'customer@myjourney.in',
+        legacyEmail: 'customer@yatrasetu.gov.in',
         passwordHash,
         role: USER_ROLES.CUSTOMER,
         phone: '+91-9876543213'
@@ -142,9 +146,17 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
 
     const userDocs = [];
     for (const u of usersData) {
+      const { legacyEmail, ...userFields } = u;
       let doc = await User.findOne({ email: u.email });
+      if (!doc && legacyEmail) {
+        doc = await User.findOneAndUpdate(
+          { email: legacyEmail },
+          { $set: { email: u.email } },
+          { new: true }
+        );
+      }
       if (!doc) {
-        doc = await User.create(u);
+        doc = await User.create(userFields);
       }
       userDocs.push(doc);
     }
@@ -403,7 +415,9 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
     // 8. Demo Booking (Seed one confirmed booking on Trip 0 for Vikram Sharma)
     const demoTrip = tripDocs[0];
     const customerUser = userDocs[3]; // Vikram Sharma
-    const existingDemoBooking = await Booking.findOne({ userId: customerUser._id, tripId: demoTrip._id });
+    const existingDemoBooking = await Booking.findOne({
+      $or: [{ pnr: 'YS7A9K2M' }, { userId: customerUser._id, tripId: demoTrip._id }]
+    });
 
     if (!existingDemoBooking) {
       const demoSeats = ['1A', '1B'];
@@ -420,7 +434,7 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
             gender: 'MALE',
             seatNumber: '1A',
             phone: '+91-9876543213',
-            email: 'customer@yatrasetu.gov.in'
+            email: 'customer@myjourney.in'
           },
           {
             name: 'Ananya Sharma',
@@ -515,13 +529,13 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
     console.log(`[Seed] myjourneycollection synchronized with journey records.`);
 
     console.log('\n========================================');
-    console.log('✅ YATRASETU DATABASE SEED COMPLETE');
+    console.log('✅ MYJOURNEY DATABASE SEED COMPLETE');
     console.log('========================================');
     console.log('Demo Credentials:');
-    console.log('• Admin:    admin@yatrasetu.gov.in / ' + SEED_PASSWORD);
-    console.log('• Operator: operator.delhi@yatrasetu.gov.in / ' + SEED_PASSWORD);
-    console.log('• Operator: operator.jaipur@yatrasetu.gov.in / ' + SEED_PASSWORD);
-    console.log('• Customer: customer@yatrasetu.gov.in / ' + SEED_PASSWORD);
+    console.log('• Admin:    admin@myjourney.in / ' + SEED_PASSWORD);
+    console.log('• Operator: operator.delhi@myjourney.in / ' + SEED_PASSWORD);
+    console.log('• Operator: operator.jaipur@myjourney.in / ' + SEED_PASSWORD);
+    console.log('• Customer: customer@myjourney.in / ' + SEED_PASSWORD);
     console.log('========================================\n');
 
     return { success: true };

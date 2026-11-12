@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import {
-  Bus,
-  Plus,
-  Edit2,
-  Armchair,
-  Loader2,
-  AlertCircle,
-  X,
-  CheckCircle2
-} from 'lucide-react';
+  TableContainer,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Modal,
+  Button,
+  Input,
+  Select,
+  StatusBadge,
+  LoadingSkeleton,
+  ErrorState,
+  EmptyState
+} from '../../components/ui/index.js';
+import { Bus, Plus, Edit2 } from 'lucide-react';
 
 export const AdminBusesPage = () => {
+  const { toast } = useToast();
   const [buses, setBuses] = useState([]);
   const [operators, setOperators] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +42,7 @@ export const AdminBusesPage = () => {
 
   const fetchBusesAndOperators = async () => {
     setLoading(true);
+    setError('');
     try {
       const [busRes, opRes] = await Promise.all([
         api.get('/admin/buses'),
@@ -103,8 +114,10 @@ export const AdminBusesPage = () => {
 
       if (editingBus) {
         await api.put(`/admin/buses/${editingBus._id}`, payload);
+        toast.success('Bus fleet configuration updated.');
       } else {
         await api.post('/admin/buses', payload);
+        toast.success('New vehicle registered into fleet.');
       }
 
       setModalOpen(false);
@@ -120,227 +133,203 @@ export const AdminBusesPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest">
+          <span className="text-[11px] font-bold text-[#0F766E] dark:text-[#5EEAD4] uppercase tracking-wider">
             Fleet Management
           </span>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#14532D] dark:text-[#F0FDF4] mt-0.5">
             Registered Bus Fleet
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-[#475569] dark:text-[#A7C4B0]">
             Configure vehicle registrations, seat layout capacities, and cabin amenities.
           </p>
         </div>
 
-        <button
-          onClick={openCreateModal}
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-emerald-600/20"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Register New Bus</span>
-        </button>
+        <Button variant="primary" icon={Plus} onClick={openCreateModal}>
+          Add Bus to Fleet
+        </Button>
       </div>
 
       {loading ? (
-        <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading buses...</p>
-        </div>
+        <LoadingSkeleton rows={5} />
       ) : error ? (
-        <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 text-center">
-          <AlertCircle className="w-6 h-6 mx-auto mb-2 text-rose-600" />
-          <p className="text-sm font-bold">{error}</p>
-        </div>
+        <ErrorState message={error} onRetry={fetchBusesAndOperators} />
+      ) : buses.length === 0 ? (
+        <EmptyState
+          icon={Bus}
+          title="No Buses Registered"
+          description="Register buses under active operators to assign them to intercity schedules."
+          action={
+            <Button variant="primary" size="sm" icon={Plus} onClick={openCreateModal}>
+              Add Bus
+            </Button>
+          }
+        />
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="py-3 px-5">Reg Number</th>
-                  <th className="py-3 px-5">Operator</th>
-                  <th className="py-3 px-5">Bus Type & Layout</th>
-                  <th className="py-3 px-5 text-center">Seats</th>
-                  <th className="py-3 px-5">Amenities</th>
-                  <th className="py-3 px-5">Status</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
-                {buses.map((b) => (
-                  <tr key={b._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                    <td className="py-4 px-5">
-                      <p className="font-mono font-bold text-slate-900 dark:text-white text-sm">
-                        {b.registrationNumber}
-                      </p>
-                    </td>
-                    <td className="py-4 px-5 font-semibold text-slate-700 dark:text-slate-300">
-                      {b.operatorId?.name || 'N/A'}
-                    </td>
-                    <td className="py-4 px-5">
-                      <p className="font-bold">{b.busType}</p>
-                      <p className="text-[10px] text-slate-400">Layout: {b.seatLayout?.layoutType || '2+2'}</p>
-                    </td>
-                    <td className="py-4 px-5 text-center font-black text-emerald-600 dark:text-emerald-400">
-                      {b.totalSeats}
-                    </td>
-                    <td className="py-4 px-5">
-                      <div className="flex flex-wrap gap-1 max-w-xs">
-                        {b.amenities?.map((a, i) => (
-                          <span
-                            key={i}
-                            className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[10px] text-slate-600 dark:text-slate-300"
-                          >
-                            {a}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="py-4 px-5">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${
-                          b.status === 'ACTIVE'
-                            ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                            : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300'
-                        }`}
-                      >
-                        {b.status}
-                      </span>
-                    </td>
-                    <td className="py-4 px-5 text-right">
-                      <button
-                        onClick={() => openEditModal(b)}
-                        className="p-1.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Reg Number</Th>
+                <Th>Operator</Th>
+                <Th>Bus Type & Layout</Th>
+                <Th className="text-center">Seats</Th>
+                <Th>Amenities</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Actions</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {buses.map((b) => (
+                <Tr key={b._id}>
+                  <Td className="font-mono font-bold text-[#14532D] dark:text-[#F0FDF4] text-sm">
+                    {b.registrationNumber}
+                  </Td>
+                  <Td className="font-semibold text-[#172B24] dark:text-[#D1E7D8]">
+                    {b.operatorId?.name || 'N/A'}
+                  </Td>
+                  <Td>
+                    <p className="font-semibold text-[#172B24] dark:text-[#F0FDF4]">{b.busType}</p>
+                    <p className="text-[11px] text-[#64748B] dark:text-[#A7C4B0]">
+                      Layout: {b.seatLayout?.layoutType || '2+2'}
+                    </p>
+                  </Td>
+                  <Td className="text-center font-bold text-[#166534] dark:text-[#4ADE80]">
+                    {b.totalSeats}
+                  </Td>
+                  <Td>
+                    <div className="flex flex-wrap gap-1 max-w-xs">
+                      {b.amenities?.map((a, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-0.5 rounded bg-[#F0FDF4] dark:bg-[#10231B] border border-[#DCE7DF] dark:border-[#294A38] text-[10px] font-medium text-[#14532D] dark:text-[#D1E7D8]"
+                        >
+                          {a}
+                        </span>
+                      ))}
+                    </div>
+                  </Td>
+                  <Td>
+                    <StatusBadge status={b.status} />
+                  </Td>
+                  <Td className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      icon={Edit2}
+                      onClick={() => openEditModal(b)}
+                      aria-label={`Edit ${b.registrationNumber}`}
+                    >
+                      Edit
+                    </Button>
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
       )}
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 max-w-lg w-full space-y-5 shadow-2xl">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                {editingBus ? 'Edit Bus Fleet Details' : 'Register New Bus into Fleet'}
-              </h3>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
-              </button>
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title={editingBus ? 'Edit Bus Fleet Details' : 'Register New Bus into Fleet'}
+        size="lg"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {formError && (
+            <div className="p-3 rounded-lg bg-[#FEE2E2] dark:bg-[#3B1517] border border-[#B91C1C]/30 text-[#991B1B] dark:text-[#FEE2E2] text-xs font-semibold">
+              {formError}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <Select
+                label="Operator *"
+                required
+                value={operatorId}
+                onChange={(e) => setOperatorId(e.target.value)}
+              >
+                {operators.map((op) => (
+                  <option key={op._id} value={op._id}>
+                    {op.name} ({op.operatorCode})
+                  </option>
+                ))}
+              </Select>
             </div>
 
-            {formError && (
-              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold">
-                {formError}
-              </div>
-            )}
+            <Input
+              label="Registration Plate *"
+              type="text"
+              required
+              placeholder="DL-01-PC-9942"
+              value={registrationNumber}
+              onChange={(e) => setRegistrationNumber(e.target.value)}
+              className="uppercase font-mono"
+            />
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Operating Agency *
-                  </label>
-                  <select
-                    value={operatorId}
-                    onChange={(e) => setOperatorId(e.target.value)}
-                    required
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  >
-                    {operators.map((op) => (
-                      <option key={op._id} value={op._id}>
-                        {op.name} ({op.operatorCode})
-                      </option>
-                    ))}
-                  </select>
-                </div>
+            <Select
+              label="Fleet Status"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="MAINTENANCE">MAINTENANCE</option>
+              <option value="INACTIVE">INACTIVE</option>
+            </Select>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Registration Number *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. DL-01-AB-1234"
-                    value={registrationNumber}
-                    onChange={(e) => setRegistrationNumber(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase focus:ring-2 focus:ring-emerald-500 focus:outline-none font-mono"
-                  />
-                </div>
+            <div className="sm:col-span-2">
+              <Input
+                label="Coach Model / Type *"
+                type="text"
+                required
+                placeholder="Volvo 9600 Multi-Axle AC"
+                value={busType}
+                onChange={(e) => setBusType(e.target.value)}
+              />
+            </div>
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Bus Category *
-                  </label>
-                  <select
-                    value={busType}
-                    onChange={(e) => setBusType(e.target.value)}
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  >
-                    <option value="Volvo Multi-Axle AC (2+2)">Volvo Multi-Axle AC (2+2)</option>
-                    <option value="AC Sleeper (2+1)">AC Sleeper (2+1)</option>
-                    <option value="AC Seater (2+2)">AC Seater (2+2)</option>
-                    <option value="Deluxe Express (2+2)">Deluxe Express (2+2)</option>
-                  </select>
-                </div>
+            <Input
+              label="Total Seats *"
+              type="number"
+              min="10"
+              max="60"
+              required
+              value={totalSeats}
+              onChange={(e) => setTotalSeats(e.target.value)}
+            />
 
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Seat Capacity *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min={10}
-                    max={60}
-                    value={totalSeats}
-                    onChange={(e) => setTotalSeats(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
+            <Select
+              label="Seat Layout Format"
+              value={layoutType}
+              onChange={(e) => setLayoutType(e.target.value)}
+            >
+              <option value="2+2">2+2 Seater Coach</option>
+              <option value="2+1">2+1 Semi-Sleeper</option>
+              <option value="1+2">1+2 Executive</option>
+            </Select>
 
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Amenities (comma-separated)
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="AC, WiFi, Charging Point, Blanket"
-                    value={amenitiesInput}
-                    onChange={(e) => setAmenitiesInput(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20 disabled:opacity-50"
-                >
-                  {submitting ? 'Saving...' : editingBus ? 'Update Bus' : 'Register Bus'}
-                </button>
-              </div>
-            </form>
+            <div className="sm:col-span-2">
+              <Input
+                label="Onboard Amenities (Comma Separated)"
+                type="text"
+                placeholder="AC, WiFi, Charging Point, GPS Tracking"
+                value={amenitiesInput}
+                onChange={(e) => setAmenitiesInput(e.target.value)}
+              />
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-[#DCE7DF] dark:border-[#294A38]">
+            <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" loading={submitting}>
+              {editingBus ? 'Update Vehicle' : 'Register Bus'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
-

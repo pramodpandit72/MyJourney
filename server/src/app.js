@@ -53,7 +53,7 @@ if (process.env.NODE_ENV !== 'test') {
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'UP',
-    service: 'YatraSetu Bus Booking & Operations API',
+    service: 'MyJourney Bus Booking & Operations API',
     timestamp: new Date().toISOString()
   });
 });

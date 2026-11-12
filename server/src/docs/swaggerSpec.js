@@ -1,9 +1,9 @@
 export const swaggerSpec = {
   openapi: '3.0.0',
   info: {
-    title: 'YatraSetu Bus Booking & Operations API',
+    title: 'MyJourney Bus Booking & Operations API',
     version: '1.0.0',
-    description: 'REST API for YatraSetu bus booking, fleet management, operator manifests, and ticketing portal.',
+    description: 'REST API for MyJourney bus booking, fleet management, operator manifests, and ticketing portal.',
     contact: {
       name: 'ALGIONS AI LABS Development Team',
       email: 'engineering@algions.com'

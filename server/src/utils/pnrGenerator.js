@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 /**
- * Generates an official YatraSetu PNR string.
+ * Generates an official MyJourney PNR string.
  * Format: YS + 8 alphanumeric characters (uppercase)
  * Example: YS7K9X2A
  */

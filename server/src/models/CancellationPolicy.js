@@ -23,7 +23,7 @@ const cancellationPolicySchema = new mongoose.Schema(
       type: String,
       required: [true, 'Policy name is required'],
       trim: true,
-      default: 'Standard YatraSetu Cancellation Policy'
+      default: 'Standard MyJourney Cancellation Policy'
     },
     refundTiers: {
       type: [refundTierSchema],

@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
-import { Bus, Lock, Mail, AlertCircle, Loader2, KeyRound, Shield, User } from 'lucide-react';
+import { useToast } from '../../context/ToastContext.jsx';
+import { BrandLogo, Button, Card, CardContent, Input } from '../../components/ui/index.js';
+import { Lock, Mail, AlertCircle, KeyRound } from 'lucide-react';
 
 export const LoginPage = () => {
   const { login } = useAuth();
+  const { toast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirect = searchParams.get('redirect') || '';
@@ -22,6 +25,7 @@ export const LoginPage = () => {
     try {
       const res = await login(email, password);
       const userRole = res?.data?.user?.role;
+      toast.success(`Welcome back to MyJourney, ${res?.data?.user?.name || 'User'}.`);
 
       if (redirect) {
         navigate(redirect);
@@ -39,137 +43,114 @@ export const LoginPage = () => {
     }
   };
 
-  const setDemoCredentials = (demoEmail, demoRole) => {
+  const setDemoCredentials = (demoEmail) => {
     setEmail(demoEmail);
     setPassword('Password@123');
     setError('');
   };
 
+  const demoAccounts = [
+    { label: 'Passenger', email: 'customer@myjourney.in', role: 'Customer' },
+    { label: 'Administrator', email: 'admin@myjourney.in', role: 'Admin' },
+    { label: 'Delhi Operator', email: 'operator.delhi@myjourney.in', role: 'Operator' },
+    { label: 'Jaipur Operator', email: 'operator.jaipur@myjourney.in', role: 'Operator' }
+  ];
+
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <div className="min-h-[82vh] flex items-center justify-center px-4 py-12 bg-[#F7FAF8] dark:bg-[#0B1712]">
       <div className="max-w-md w-full space-y-6">
         {/* Header */}
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-cyan-600 flex items-center justify-center text-white mx-auto shadow-md shadow-emerald-500/20">
-            <Bus className="w-6 h-6" />
+        <div className="text-center space-y-2.5">
+          <div className="flex justify-center">
+            <BrandLogo size="lg" showSubtitle={false} />
           </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Sign In to YatraSetu
-          </h2>
-          <p className="text-xs text-slate-500">
-            Access passenger bookings, fleet management, or operator schedules
+          <h1 className="text-2xl font-bold text-[#14532D] dark:text-[#F0FDF4]">
+            Sign In to MyJourney
+          </h1>
+          <p className="text-xs text-[#475569] dark:text-[#A7C4B0]">
+            Access passenger tickets, fleet operations, or portal administration
           </p>
         </div>
 
-        {/* Demo Fast-Login Pill Box */}
-        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2.5">
-          <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center space-x-1">
-            <KeyRound className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-            <span>Placement Reviewer One-Click Demo Credentials:</span>
-          </p>
-          <div className="grid grid-cols-2 gap-2 text-xs">
-            <button
-              type="button"
-              onClick={() => setDemoCredentials('customer@yatrasetu.gov.in', 'CUSTOMER')}
-              className="p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-slate-700 text-left transition-all"
-            >
-              <span className="font-bold block text-emerald-600 dark:text-emerald-400">👤 Passenger</span>
-              <span className="text-[10px] text-slate-400 truncate block">customer@yatrasetu.gov.in</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setDemoCredentials('admin@yatrasetu.gov.in', 'ADMIN')}
-              className="p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950/40 border border-slate-200 dark:border-slate-700 text-left transition-all"
-            >
-              <span className="font-bold block text-teal-700 dark:text-teal-400">🛡️ Admin</span>
-              <span className="text-[10px] text-slate-400 truncate block">admin@yatrasetu.gov.in</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setDemoCredentials('operator.delhi@yatrasetu.gov.in', 'OPERATOR')}
-              className="p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-slate-700 text-left transition-all"
-            >
-              <span className="font-bold block text-emerald-600 dark:text-emerald-400">🚌 Delhi Ops</span>
-              <span className="text-[10px] text-slate-400 truncate block">operator.delhi@...</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setDemoCredentials('operator.jaipur@yatrasetu.gov.in', 'OPERATOR')}
-              className="p-2 rounded-lg bg-white dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-slate-200 dark:border-slate-700 text-left transition-all"
-            >
-              <span className="font-bold block text-emerald-600 dark:text-emerald-400">🚌 Jaipur Ops</span>
-              <span className="text-[10px] text-slate-400 truncate block">operator.jaipur@...</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Form Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm">
-          {error && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-semibold flex items-center space-x-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{error}</span>
+        {/* Demo Account Quick Select */}
+        <Card className="bg-[#F0FDF4] dark:bg-[#10231B]">
+          <CardContent className="p-4 space-y-2.5">
+            <p className="text-[11px] font-bold text-[#14532D] dark:text-[#D1E7D8] uppercase tracking-wider flex items-center gap-1.5">
+              <KeyRound className="w-3.5 h-3.5 text-[#0F766E] dark:text-[#5EEAD4]" />
+              <span>Quick Demo Credentials</span>
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {demoAccounts.map((acc) => (
+                <button
+                  key={acc.email}
+                  type="button"
+                  onClick={() => setDemoCredentials(acc.email)}
+                  className="p-2 rounded-lg bg-white dark:bg-[#162B22] hover:bg-[#DCFCE7] dark:hover:bg-[#1C382C] border border-[#DCE7DF] dark:border-[#294A38] text-left transition-colors cursor-pointer"
+                >
+                  <span className="text-xs font-bold block text-[#166534] dark:text-[#4ADE80]">
+                    {acc.label}
+                  </span>
+                  <span className="text-[10px] text-[#64748B] dark:text-[#A7C4B0] truncate block">
+                    {acc.email}
+                  </span>
+                </button>
+              ))}
             </div>
-          )}
+          </CardContent>
+        </Card>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-                Official Email Address
-              </label>
-              <div className="relative">
-                <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                <input
-                  type="email"
-                  required
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
-                />
+        {/* Login Form */}
+        <Card>
+          <CardContent className="p-6 sm:p-7">
+            {error && (
+              <div
+                role="alert"
+                className="mb-4 p-3 rounded-lg bg-[#FEE2E2] dark:bg-[#3B1517] border border-[#B91C1C]/30 dark:border-[#F87171]/30 text-[#991B1B] dark:text-[#FEE2E2] text-xs font-medium flex items-center gap-2"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{error}</span>
               </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                id="login-email"
+                label="Email Address"
+                type="email"
+                icon={Mail}
+                required
+                placeholder="name@myjourney.in"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+
+              <Input
+                id="login-password"
+                label="Password"
+                type="password"
+                icon={Lock}
+                required
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+
+              <Button type="submit" variant="primary" size="lg" loading={loading} className="w-full">
+                Sign In
+              </Button>
+            </form>
+
+            <div className="mt-6 pt-4 border-t border-[#DCE7DF] dark:border-[#294A38] text-center text-xs text-[#475569] dark:text-[#A7C4B0]">
+              Don't have a passenger account?{' '}
+              <Link
+                to="/register"
+                className="font-bold text-[#166534] dark:text-[#4ADE80] hover:underline"
+              >
+                Create Account
+              </Link>
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                <input
-                  type="password"
-                  required
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full h-11 pl-10 pr-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm rounded-xl shadow-md shadow-emerald-500/25 flex items-center justify-center space-x-2 transition-all cursor-pointer disabled:opacity-50"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <span>Sign In Securely</span>
-              )}
-            </button>
-          </form>
-
-          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center text-xs text-slate-500">
-            Don't have an account yet?{' '}
-            <Link to="/register" className="font-bold text-emerald-600 dark:text-emerald-400 hover:underline">
-              Create an account
-            </Link>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

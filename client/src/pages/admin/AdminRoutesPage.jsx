@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api.js';
+import { useToast } from '../../context/ToastContext.jsx';
 import {
-  GitFork,
-  Plus,
-  Edit2,
-  Trash2,
-  Loader2,
-  AlertCircle,
-  X,
-  ArrowRight
-} from 'lucide-react';
+  TableContainer,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Modal,
+  Button,
+  Input,
+  Select,
+  StatusBadge,
+  LoadingSkeleton,
+  ErrorState,
+  EmptyState
+} from '../../components/ui/index.js';
+import { GitFork, Plus, Trash2, ArrowRight } from 'lucide-react';
 
 export const AdminRoutesPage = () => {
+  const { toast } = useToast();
   const [routes, setRoutes] = useState([]);
   const [stops, setStops] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -34,6 +44,7 @@ export const AdminRoutesPage = () => {
 
   const fetchRoutesAndStops = async () => {
     setLoading(true);
+    setError('');
     try {
       const [rRes, sRes] = await Promise.all([
         api.get('/admin/routes'),
@@ -124,8 +135,10 @@ export const AdminRoutesPage = () => {
 
       if (editingRoute) {
         await api.put(`/admin/routes/${editingRoute._id}`, payload);
+        toast.success('Route corridor updated.');
       } else {
         await api.post('/admin/routes', payload);
+        toast.success('New route corridor configured.');
       }
 
       setModalOpen(false);
@@ -141,257 +154,216 @@ export const AdminRoutesPage = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest">
+          <span className="text-[11px] font-bold text-[#0F766E] dark:text-[#5EEAD4] uppercase tracking-wider">
             Corridor Mapping
           </span>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-[#14532D] dark:text-[#F0FDF4] mt-0.5">
             Route Corridors & Stoppages
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-[#475569] dark:text-[#A7C4B0]">
             Define stop sequence order, intermediate distances, and duration benchmarks.
           </p>
         </div>
 
-        <button
-          onClick={openCreateModal}
-          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md shadow-emerald-600/20"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Create New Route</span>
-        </button>
+        <Button variant="primary" icon={Plus} onClick={openCreateModal}>
+          Create New Route
+        </Button>
       </div>
 
       {loading ? (
-        <div className="py-20 text-center space-y-3">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto text-emerald-600" />
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Loading route corridors...</p>
-        </div>
+        <LoadingSkeleton rows={5} />
       ) : error ? (
-        <div className="p-6 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 text-center">
-          <AlertCircle className="w-6 h-6 mx-auto mb-2 text-rose-600" />
-          <p className="text-sm font-bold">{error}</p>
-        </div>
+        <ErrorState message={error} onRetry={fetchRoutesAndStops} />
+      ) : routes.length === 0 ? (
+        <EmptyState
+          icon={GitFork}
+          title="No Route Corridors Defined"
+          description="Create an ordered corridor linking at least two terminals to schedule trips."
+          action={
+            <Button variant="primary" size="sm" icon={Plus} onClick={openCreateModal}>
+              Create Route
+            </Button>
+          }
+        />
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="py-3 px-5">Route Name & Code</th>
-                  <th className="py-3 px-5">Distance</th>
-                  <th className="py-3 px-5">Duration</th>
-                  <th className="py-3 px-5">Stops Sequence</th>
-                  <th className="py-3 px-5">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-800 dark:text-slate-200">
-                {routes.map((r) => (
-                  <tr key={r._id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
-                    <td className="py-4 px-5">
-                      <p className="font-bold text-slate-900 dark:text-white text-sm">{r.routeName}</p>
-                      <span className="font-mono text-[10px] text-teal-600 dark:text-teal-400 font-bold">
-                        {r.routeCode}
-                      </span>
-                    </td>
-                    <td className="py-4 px-5 font-bold">{r.totalDistance} km</td>
-                    <td className="py-4 px-5 font-semibold text-slate-500">{r.estimatedDuration}</td>
-                    <td className="py-4 px-5">
-                      <div className="flex flex-wrap items-center gap-1.5 max-w-md">
-                        {r.stops?.map((st, i) => (
-                          <React.Fragment key={i}>
-                            <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold">
-                              {st.stopId?.name || st.stopId?.city || `Stop ${st.stopOrder}`}
-                            </span>
-                            {i < r.stops.length - 1 && <ArrowRight className="w-3 h-3 text-slate-400" />}
-                          </React.Fragment>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="py-4 px-5">
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
-                        {r.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <TableContainer>
+          <Table>
+            <Thead>
+              <Tr>
+                <Th>Route Name & Code</Th>
+                <Th>Distance</Th>
+                <Th>Duration</Th>
+                <Th>Stops Sequence</Th>
+                <Th>Status</Th>
+              </Tr>
+            </Thead>
+            <Tbody>
+              {routes.map((r) => (
+                <Tr key={r._id}>
+                  <Td>
+                    <p className="font-bold text-[#14532D] dark:text-[#F0FDF4] text-sm">{r.routeName}</p>
+                    <span className="font-mono text-[11px] text-[#0F766E] dark:text-[#5EEAD4] font-semibold">
+                      {r.routeCode}
+                    </span>
+                  </Td>
+                  <Td className="font-bold whitespace-nowrap">{r.totalDistance} km</Td>
+                  <Td className="font-medium text-[#475569] dark:text-[#D1E7D8] whitespace-nowrap">
+                    {r.estimatedDuration}
+                  </Td>
+                  <Td>
+                    <div className="flex flex-wrap items-center gap-1.5 max-w-md">
+                      {r.stops?.map((st, i) => (
+                        <React.Fragment key={i}>
+                          <span className="px-2 py-0.5 rounded bg-[#F0FDF4] dark:bg-[#10231B] border border-[#DCE7DF] dark:border-[#294A38] text-[11px] font-semibold text-[#14532D] dark:text-[#D1E7D8]">
+                            {st.stopId?.name || st.stopId?.city || `Stop ${st.stopOrder}`}
+                          </span>
+                          {i < r.stops.length - 1 && (
+                            <ArrowRight className="w-3 h-3 text-[#0F766E] dark:text-[#5EEAD4]" />
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </Td>
+                  <Td>
+                    <StatusBadge status={r.status} />
+                  </Td>
+                </Tr>
+              ))}
+            </Tbody>
+          </Table>
+        </TableContainer>
       )}
 
-      {/* Modal */}
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 max-w-xl w-full space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-800">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                Configure Route Corridor
-              </h3>
-              <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="w-5 h-5" />
+      <Modal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        title="Configure Route Corridor"
+        size="xl"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {formError && (
+            <div className="p-3 rounded-lg bg-[#FEE2E2] dark:bg-[#3B1517] border border-[#B91C1C]/30 text-[#991B1B] dark:text-[#FEE2E2] text-xs font-semibold">
+              {formError}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
+              <Input
+                label="Route Corridor Title *"
+                type="text"
+                required
+                placeholder="e.g. Delhi ISBT to Jaipur Sindhi Camp"
+                value={routeName}
+                onChange={(e) => setRouteName(e.target.value)}
+              />
+            </div>
+
+            <Input
+              label="Route Code *"
+              type="text"
+              required
+              placeholder="DEL-JAI-101"
+              value={routeCode}
+              onChange={(e) => setRouteCode(e.target.value)}
+              className="uppercase font-mono"
+            />
+
+            <Input
+              label="Total Distance (km) *"
+              type="number"
+              required
+              min="10"
+              value={totalDistance}
+              onChange={(e) => setTotalDistance(e.target.value)}
+            />
+
+            <Input
+              label="Estimated Duration *"
+              type="text"
+              required
+              placeholder="e.g. 5h 30m"
+              value={estimatedDuration}
+              onChange={(e) => setEstimatedDuration(e.target.value)}
+            />
+
+            <Select label="Status" value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="INACTIVE">INACTIVE</option>
+            </Select>
+          </div>
+
+          <div className="pt-2 space-y-2.5">
+            <div className="flex justify-between items-center">
+              <label className="text-xs font-bold text-[#14532D] dark:text-[#D1E7D8] uppercase tracking-wider">
+                Ordered Sequence of Stops (Min 2)
+              </label>
+              <button
+                type="button"
+                onClick={handleAddStop}
+                className="text-xs text-[#166534] dark:text-[#4ADE80] font-bold hover:underline"
+              >
+                + Add Intermediate Stop
               </button>
             </div>
 
-            {formError && (
-              <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold">
-                {formError}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2">
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Route Corridor Title *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Delhi ISBT to Jaipur Sindhi Camp"
-                    value={routeName}
-                    onChange={(e) => setRouteName(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Route Code *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. DEL-JAI-EXP"
-                    value={routeCode}
-                    onChange={(e) => setRouteCode(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium uppercase font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Total Distance (km) *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min={1}
-                    value={totalDistance}
-                    onChange={(e) => setTotalDistance(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Estimated Travel Time *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. 5h 30m"
-                    value={estimatedDuration}
-                    onChange={(e) => setEstimatedDuration(e.target.value)}
-                    className="w-full h-10 px-3 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-600 dark:text-slate-400 uppercase mb-1">
-                    Status
-                  </label>
+            <div className="space-y-2">
+              {routeStops.map((st, i) => (
+                <div
+                  key={i}
+                  className="flex flex-wrap sm:flex-nowrap items-center gap-2 p-2.5 rounded-lg bg-[#F7FAF8] dark:bg-[#10231B] border border-[#DCE7DF] dark:border-[#294A38] text-xs"
+                >
+                  <span className="w-5 font-bold font-mono text-[#0F766E] dark:text-[#5EEAD4]">
+                    {i + 1}
+                  </span>
                   <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="w-full h-10 px-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    value={st.stopId}
+                    onChange={(e) => handleStopChange(i, 'stopId', e.target.value)}
+                    className="flex-1 h-9 px-2.5 bg-white dark:bg-[#162B22] border border-[#DCE7DF] dark:border-[#294A38] rounded-md text-xs font-medium text-[#172B24] dark:text-[#F0FDF4] focus:outline-none focus:ring-2 focus:ring-[#166534]/30"
                   >
-                    <option value="ACTIVE">ACTIVE</option>
-                    <option value="INACTIVE">INACTIVE</option>
+                    {stops.map((s) => (
+                      <option key={s._id} value={s._id}>
+                        {s.city} — {s.name}
+                      </option>
+                    ))}
                   </select>
-                </div>
-              </div>
 
-              {/* Stop Sequencer */}
-              <div className="pt-2">
-                <div className="flex justify-between items-center mb-2">
-                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase">
-                    Ordered Sequence of Stops (Min 2)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={handleAddStop}
-                    className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
-                  >
-                    + Add Intermediate Stop
-                  </button>
-                </div>
+                  <div className="flex items-center gap-1.5 w-28">
+                    <input
+                      type="number"
+                      placeholder="km"
+                      value={st.distanceKm}
+                      onChange={(e) => handleStopChange(i, 'distanceKm', e.target.value)}
+                      className="w-16 h-9 px-2 bg-white dark:bg-[#162B22] border border-[#DCE7DF] dark:border-[#294A38] rounded-md text-xs text-[#172B24] dark:text-[#F0FDF4]"
+                    />
+                    <span className="text-[#64748B] dark:text-[#A7C4B0] text-[11px]">km</span>
+                  </div>
 
-                <div className="space-y-2">
-                  {routeStops.map((st, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center space-x-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-xs"
+                  {routeStops.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveStop(i)}
+                      className="p-1.5 rounded text-[#B91C1C] dark:text-[#F87171] hover:bg-[#FEE2E2] dark:hover:bg-[#3B1517]"
+                      aria-label={`Remove stop ${i + 1}`}
                     >
-                      <span className="w-5 font-bold font-mono text-slate-400">{i + 1}</span>
-                      <select
-                        value={st.stopId}
-                        onChange={(e) => handleStopChange(i, 'stopId', e.target.value)}
-                        className="flex-1 h-9 px-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs font-medium"
-                      >
-                        {stops.map((s) => (
-                          <option key={s._id} value={s._id}>
-                            {s.city} — {s.name}
-                          </option>
-                        ))}
-                      </select>
-
-                      <div className="flex items-center space-x-1 w-28">
-                        <input
-                          type="number"
-                          placeholder="km"
-                          value={st.distanceKm}
-                          onChange={(e) => handleStopChange(i, 'distanceKm', e.target.value)}
-                          className="w-16 h-9 px-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-xs"
-                        />
-                        <span className="text-slate-400 text-[10px]">km</span>
-                      </div>
-
-                      {routeStops.length > 2 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveStop(i)}
-                          className="p-1.5 text-rose-500 hover:text-rose-700"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
-              </div>
-
-              <div className="flex justify-end space-x-2 pt-3 border-t border-slate-200 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-bold shadow-md shadow-emerald-600/20 disabled:opacity-50"
-                >
-                  {submitting ? 'Saving...' : 'Save Route Corridor'}
-                </button>
-              </div>
-            </form>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-[#DCE7DF] dark:border-[#294A38]">
+            <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" loading={submitting}>
+              Save Route Corridor
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
-

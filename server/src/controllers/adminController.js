@@ -466,7 +466,7 @@ export const getCancellationPolicy = async (req, res, next) => {
     let policy = await CancellationPolicy.findOne({ active: true });
     if (!policy) {
       policy = await CancellationPolicy.create({
-        policyName: 'Standard YatraSetu Cancellation Policy',
+        policyName: 'Standard MyJourney Cancellation Policy',
         refundTiers: [
           { minHoursBeforeDeparture: 24, refundPercentage: 100 },
           { minHoursBeforeDeparture: 6, refundPercentage: 50 },

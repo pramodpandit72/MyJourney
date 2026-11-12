@@ -2,52 +2,136 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * MyJourney Design System Tokens
+ * Light Mode (Default) & Dark Mode — Government Transport & Enterprise Portal
+ */
 :root {
-  --background: #f4f9f6;
-  --foreground: #092019;
-  --card: #ffffff;
-  --card-foreground: #092019;
-  --muted: #4e6b63;
-  --muted-background: #e8f3ed;
-  --border: #cee2d7;
-  --primary: #059669;
-  --primary-hover: #047857;
-  --accent: #0d9488;
-  --aqua: #06b6d4;
-  --saffron: #ea580c;
-  --success: #16a34a;
-  --danger: #dc2626;
-  --warning: #d97706;
+  /* Page & Surface Backgrounds */
+  --bg-page: #F7FAF8;
+  --bg-soft: #F0FDF4;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-muted: #EFF6F1;
+
+  /* Text Hierarchy */
+  --text-primary: #172B24;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-heading: #14532D;
+
+  /* Borders & Dividers */
+  --border-color: #DCE7DF;
+  --border-strong: #B8CEBF;
+
+  /* Brand & Accent Palette */
+  --green-primary: #166534;
+  --green-deep: #14532D;
+  --green-secondary: #15803D;
+  --green-light: #DCFCE7;
+  --aqua-primary: #0F766E;
+  --aqua-light: #CCFBF1;
+
+  /* Status Colors */
+  --status-success: #15803D;
+  --status-success-bg: #DCFCE7;
+  --status-warning: #B45309;
+  --status-warning-bg: #FEF3C7;
+  --status-error: #B91C1C;
+  --status-error-bg: #FEE2E2;
+  --status-info: #0369A1;
+  --status-info-bg: #E0F2FE;
+
+  /* Legacy aliases for smooth compatibility */
+  --background: var(--bg-page);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --border: var(--border-color);
+  --primary: var(--green-primary);
+  --primary-hover: var(--green-deep);
+  --accent: var(--aqua-primary);
 }
 
 .dark {
-  --background: #061914;
-  --foreground: #f0fdf4;
-  --card: #0b231d;
-  --card-foreground: #f0fdf4;
-  --muted: #7ca89b;
-  --muted-background: #11332a;
-  --border: #16473b;
-  --primary: #10b981;
-  --primary-hover: #34d399;
-  --accent: #14b8a6;
-  --aqua: #22d3ee;
-  --saffron: #f97316;
-  --success: #22c55e;
-  --danger: #ef4444;
-  --warning: #f59e0b;
+  /* Page & Surface Backgrounds */
+  --bg-page: #0B1712;
+  --bg-soft: #10231B;
+  --bg-card: #162B22;
+  --bg-elevated: #1C382C;
+  --bg-muted: #10231B;
+
+  /* Text Hierarchy */
+  --text-primary: #F0FDF4;
+  --text-secondary: #D1E7D8;
+  --text-muted: #A7C4B0;
+  --text-heading: #F0FDF4;
+
+  /* Borders & Dividers */
+  --border-color: #294A38;
+  --border-strong: #37614B;
+
+  /* Brand & Accent Palette */
+  --green-primary: #4ADE80;
+  --green-deep: #14532D;
+  --green-secondary: #22C55E;
+  --green-light: #234B35;
+  --aqua-primary: #5EEAD4;
+  --aqua-light: #134E4A;
+
+  /* Status Colors */
+  --status-success: #4ADE80;
+  --status-success-bg: #143323;
+  --status-warning: #FBBF24;
+  --status-warning-bg: #3B290E;
+  --status-error: #F87171;
+  --status-error-bg: #3B1517;
+  --status-info: #38BDF8;
+  --status-info-bg: #0E2F44;
 }
 
-body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
+@layer base {
+  html {
+    font-family: 'Inter', 'Noto Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    line-height: 1.55;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  h1, h2, h3, h4 {
+    color: var(--text-heading);
+    letter-spacing: -0.015em;
+  }
+
+  input, select, textarea {
+    color: var(--text-primary);
+  }
 }
 
-/* Custom scrollbars */
+/* Accessible focus outline */
+*:focus-visible {
+  outline: 2px solid var(--green-primary);
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom subtle scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -58,11 +142,18 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
-  border-radius: 9999px;
+  background-color: #B8CEBF;
+  border-radius: 4px;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background-color: #334155;
+  background-color: #294A38;
 }
 
+/* Print optimization for tickets & manifests */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #172B24 !important;
+  }
+}
