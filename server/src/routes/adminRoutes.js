@@ -10,6 +10,7 @@ import {
   routeSchema,
   tripSchema,
   updateTripSchema,
+  createStateAdminSchema,
   cancellationPolicySchema
 } from '../validators/adminValidator.js';
 import { USER_ROLES } from '../config/constants.js';
@@ -56,6 +57,12 @@ router.put('/cancellation-policy', validateRequest(cancellationPolicySchema), ad
 
 // Audit logs
 router.get('/audit-logs', adminController.getAuditLogs);
+
+// State Administrators Management (Super Admin governance & approvals)
+router.get('/state-admins', adminController.getStateAdmins);
+router.post('/state-admins', validateRequest(createStateAdminSchema), adminController.createStateAdmin);
+router.patch('/state-admins/:id/verify', adminController.verifyStateAdmin);
+router.patch('/state-admins/:id/reject', adminController.rejectStateAdmin);
 
 export default router;
 

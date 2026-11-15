@@ -32,6 +32,21 @@ const userSchema = new mongoose.Schema(
       trim: true,
       default: 'ALL' // 'ALL' for National Super Admin, or specific state like 'Punjab', 'Delhi', 'Rajasthan'
     },
+    verificationStatus: {
+      type: String,
+      enum: ['PENDING', 'VERIFIED', 'REJECTED'],
+      default: 'VERIFIED',
+      index: true
+    },
+    verifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
+    },
+    verifiedAt: {
+      type: Date,
+      default: null
+    },
     operatorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Operator',

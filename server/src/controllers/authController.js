@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { logAuditEvent } from '../utils/auditLogger.js';
+import { USER_ROLES, VERIFICATION_STATUS, INDIAN_STATES } from '../config/constants.js';
 
 const generateToken = (userId, role) => {
   const secret = process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production-min-32-chars';
@@ -27,19 +28,83 @@ const sendAuthResponse = (res, user, statusCode = 200, message = 'Success') => {
     role: user.role,
     operatorId: user.operatorId,
     phone: user.phone,
-    assignedState: user.assignedState || 'ALL'
+    assignedState: user.assignedState || 'ALL',
+    verificationStatus: user.verificationStatus || 'VERIFIED'
   };
 
   return sendSuccess(res, { user: userData, token }, message, statusCode);
 };
 
+export const getAvailableStates = async (req, res, next) => {
+  try {
+    const stateAdmins = await User.find({
+      role: USER_ROLES.ADMIN,
+      assignedState: { $exists: true, $ne: 'ALL' }
+    }).select('assignedState verificationStatus');
+
+    const stateCountMap = new Map();
+    stateAdmins.forEach((u) => {
+      const st = u.assignedState;
+      if (st) {
+        stateCountMap.set(st.toLowerCase(), (stateCountMap.get(st.toLowerCase()) || 0) + 1);
+      }
+    });
+
+    const statesList = INDIAN_STATES.map((stateName) => {
+      const count = stateCountMap.get(stateName.toLowerCase()) || 0;
+      return {
+        state: stateName,
+        isClaimed: count > 0,
+        adminCount: count
+      };
+    });
+
+    return sendSuccess(res, { states: statesList });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const register = async (req, res, next) => {
   try {
-    const { name, email, password, phone, role, operatorId } = req.body;
+    const { name, email, password, phone, role, operatorId, assignedState } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return sendError(res, 'An account with this email address already exists.', 409, 'EMAIL_EXISTS');
+    }
+
+    let userRole = role || USER_ROLES.CUSTOMER;
+    let targetState = 'ALL';
+    let verificationStatus = VERIFICATION_STATUS.VERIFIED;
+
+    if (userRole === USER_ROLES.ADMIN) {
+      if (!assignedState || assignedState.trim() === '' || assignedState.toUpperCase() === 'ALL') {
+        return sendError(
+          res,
+          'State Administrator registration requires selecting a specific state. National Super Admin accounts can only be provisioned internally.',
+          400,
+          'STATE_REQUIRED'
+        );
+      }
+
+      // Check if state is already claimed by an existing state admin!
+      const existingAdminForState = await User.findOne({
+        role: USER_ROLES.ADMIN,
+        assignedState: { $regex: new RegExp(`^${assignedState.trim()}$`, 'i') }
+      });
+
+      if (existingAdminForState) {
+        return sendError(
+          res,
+          `A State Administrator account is already registered for ${assignedState}. Under public transport governance policy, only one self-registered administrator is allowed per state. Additional state administrators can only be appointed by the National Super Administrator.`,
+          409,
+          'STATE_ALREADY_CLAIMED'
+        );
+      }
+
+      targetState = assignedState.trim();
+      verificationStatus = VERIFICATION_STATUS.PENDING;
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -50,20 +115,28 @@ export const register = async (req, res, next) => {
       email,
       passwordHash,
       phone: phone || '',
-      role: role || 'CUSTOMER',
+      role: userRole,
+      assignedState: targetState,
+      verificationStatus,
       operatorId: operatorId || null
     });
 
     await logAuditEvent({
       actorId: newUser._id,
       actorRole: newUser.role,
-      action: 'USER_REGISTERED',
+      action: userRole === USER_ROLES.ADMIN ? 'STATE_ADMIN_REGISTERED' : 'USER_REGISTERED',
       entityType: 'User',
       entityId: newUser._id,
-      summary: `User registered: ${newUser.name} (${newUser.email}) with role ${newUser.role}`
+      summary: userRole === USER_ROLES.ADMIN
+        ? `State Admin registered for ${targetState}: ${newUser.name} (${newUser.email}) - Status: PENDING_VERIFICATION`
+        : `User registered: ${newUser.name} (${newUser.email}) with role ${newUser.role}`
     });
 
-    return sendAuthResponse(res, newUser, 201, 'Registration successful');
+    const msg = userRole === USER_ROLES.ADMIN
+      ? `State Administrator account for ${targetState} registered successfully. Your account is pending verification and approval by the National Super Administrator.`
+      : 'Registration successful';
+
+    return sendAuthResponse(res, newUser, 201, msg);
   } catch (err) {
     next(err);
   }
@@ -80,6 +153,17 @@ export const login = async (req, res, next) => {
 
     if (!user.isActive) {
       return sendError(res, 'Account has been deactivated. Please contact support.', 403, 'ACCOUNT_DEACTIVATED');
+    }
+
+    if (user.role === USER_ROLES.ADMIN && user.assignedState !== 'ALL') {
+      if (user.verificationStatus === VERIFICATION_STATUS.REJECTED) {
+        return sendError(
+          res,
+          'Your State Administrator account was rejected by the National Super Administrator. Access has been denied.',
+          403,
+          'STATE_ADMIN_REJECTED'
+        );
+      }
     }
 
     const isMatch = await user.comparePassword(password);

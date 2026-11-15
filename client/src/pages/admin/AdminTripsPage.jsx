@@ -49,6 +49,7 @@ export const AdminTripsPage = () => {
 
   const assignedState = user?.assignedState || 'ALL';
   const isSuperAdmin = assignedState === 'ALL';
+  const isVerified = isSuperAdmin || user?.verificationStatus === 'VERIFIED';
 
   const [trips, setTrips] = useState([]);
   const [routes, setRoutes] = useState([]);
@@ -121,6 +122,10 @@ export const AdminTripsPage = () => {
   }, []);
 
   const openCreateModal = () => {
+    if (!isVerified) {
+      toast.error('Account pending Super Admin approval. Timetable creation is locked.');
+      return;
+    }
     const now = new Date();
     const dep = new Date(now.getTime() + 6 * 60 * 60 * 1000);
     const arr = new Date(dep.getTime() + 5 * 60 * 60 * 1000);
@@ -170,6 +175,10 @@ export const AdminTripsPage = () => {
   };
 
   const handleOpenEditModal = (t) => {
+    if (!isVerified) {
+      toast.error('Account pending Super Admin approval. Editing is locked.');
+      return;
+    }
     if (!t.canEdit && !isSuperAdmin) {
       toast.error(`Permission Denied: You are authorized for ${assignedState} state only.`);
       return;
@@ -234,7 +243,10 @@ export const AdminTripsPage = () => {
     });
   };
 
-  const availableStates = ['ALL', 'Punjab', 'Delhi', 'Rajasthan', 'Haryana', 'Uttar Pradesh'];
+  const availableStates = [
+    'ALL',
+    ...Array.from(new Set(['Punjab', 'Delhi', 'Rajasthan', 'Haryana', 'Uttar Pradesh', 'Jharkhand', ...trips.map((t) => t.state).filter(Boolean)]))
+  ];
 
   const filteredTrips = trips.filter((t) => {
     if (selectedStateFilter === 'ALL') return true;
@@ -247,6 +259,31 @@ export const AdminTripsPage = () => {
 
   return (
     <div className="space-y-6">
+      {/* Pending Super Admin Verification Banner (if unverified state admin) */}
+      {!isVerified && (
+        <Card className="bg-[#FFFBEB] dark:bg-[#2B2313] border-[#F59E0B]/40 dark:border-[#F59E0B]/50 shadow-sm">
+          <CardContent className="p-4 sm:p-5 flex items-start gap-3">
+            <div className="p-2.5 rounded-lg bg-[#F59E0B] text-white shrink-0 mt-0.5">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-[#B45309] dark:text-[#FBBF24]">
+                  Account Pending Super Admin Approval
+                </span>
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#FEF3C7] dark:bg-[#78350F] text-[#92400E] dark:text-[#FDE68A]">
+                  LOCKED
+                </span>
+              </div>
+              <p className="text-xs text-[#92400E] dark:text-[#FDE68A] leading-relaxed">
+                Your administrator account for <strong>{assignedState} State</strong> is awaiting review and verification by the National Super Admin.
+                Timetable scheduling, modification, and cancellation permissions remain locked until your credentials are confirmed.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* State Authority Scope Banner */}
       <Card
         className={`border ${
@@ -284,7 +321,13 @@ export const AdminTripsPage = () => {
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-            <Button variant="primary" icon={Plus} onClick={openCreateModal}>
+            <Button
+              variant="primary"
+              icon={Plus}
+              onClick={openCreateModal}
+              disabled={!isVerified}
+              title={!isVerified ? 'Disabled: Account pending Super Admin verification' : ''}
+            >
               Schedule New Trip
             </Button>
           </div>
@@ -360,7 +403,7 @@ export const AdminTripsPage = () => {
             </Thead>
             <Tbody>
               {filteredTrips.map((t) => {
-                const canEdit = t.canEdit || isSuperAdmin;
+                const canEdit = (t.canEdit || isSuperAdmin) && isVerified;
                 return (
                   <Tr key={t._id}>
                     <Td>
@@ -417,6 +460,14 @@ export const AdminTripsPage = () => {
                             </Button>
                           )}
                         </div>
+                      ) : !isVerified ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold bg-[#FEF3C7] dark:bg-[#78350F]/50 text-[#B45309] dark:text-[#FDE68A]"
+                          title="Locked: Account pending Super Admin verification"
+                        >
+                          <Lock className="w-3 h-3" />
+                          <span>Pending Approval</span>
+                        </span>
                       ) : (
                         <span
                           className="inline-flex items-center gap-1 px-2 py-1 rounded text-[11px] font-semibold bg-[#F1F5F9] dark:bg-[#1E293B] text-[#64748B] dark:text-[#94A3B8]"

@@ -26,6 +26,7 @@ router.post('/register', authLimiter, validateRequest(registerSchema), authContr
 router.post('/login', authLimiter, validateRequest(loginSchema), authController.login);
 router.post('/logout', authController.logout);
 router.get('/me', authenticate, authController.getMe);
+router.get('/available-states', authController.getAvailableStates);
 
 export default router;
 

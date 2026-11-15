@@ -38,6 +38,7 @@ import { AdminCancellationPolicyPage } from '../pages/admin/AdminCancellationPol
 import { AdminReportsPage } from '../pages/admin/AdminReportsPage.jsx';
 import { AdminAuditLogsPage } from '../pages/admin/AdminAuditLogsPage.jsx';
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage.jsx';
+import { AdminStateAdminsPage } from '../pages/admin/AdminStateAdminsPage.jsx';
 
 const NotFoundPage = () => (
   <div className="min-h-[70vh] flex items-center justify-center px-4">
@@ -136,6 +137,7 @@ export const AppRoutes = () => {
         <Route path="cancellation-policy" element={<AdminCancellationPolicyPage />} />
         <Route path="reports" element={<AdminReportsPage />} />
         <Route path="audit-logs" element={<AdminAuditLogsPage />} />
+        <Route path="state-admins" element={<AdminStateAdminsPage />} />
         <Route path="settings" element={<AdminSettingsPage />} />
       </Route>
     </Routes>

@@ -11,12 +11,14 @@ import {
   Scale,
   FileBarChart2,
   History,
-  Settings
+  Settings,
+  ShieldCheck
 } from 'lucide-react';
 
 export const AdminLayout = () => {
   const navItems = [
     { label: 'Overview', path: '/admin', icon: BarChart3 },
+    { label: 'State Admins', path: '/admin/state-admins', icon: ShieldCheck },
     { label: 'Operators', path: '/admin/operators', icon: Building2 },
     { label: 'Buses', path: '/admin/buses', icon: Bus },
     { label: 'Stops', path: '/admin/stops', icon: MapPin },

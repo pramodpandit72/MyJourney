@@ -7,9 +7,11 @@ import Trip from '../models/Trip.js';
 import SeatInventory from '../models/SeatInventory.js';
 import CancellationPolicy from '../models/CancellationPolicy.js';
 import AuditLog from '../models/AuditLog.js';
+import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { logAuditEvent } from '../utils/auditLogger.js';
-import { BOOKING_STATUS, SEAT_STATUS, USER_ROLES } from '../config/constants.js';
+import { BOOKING_STATUS, SEAT_STATUS, USER_ROLES, VERIFICATION_STATUS } from '../config/constants.js';
 
 // Helper to generate seat layout seats array
 const generateSeatLayoutSeats = (totalSeats, layoutType = '2+2') => {
@@ -354,6 +356,8 @@ const getRouteStates = (route) => {
 // Check if admin user has permission to manage a route/trip based on state jurisdiction
 const canAdminManageState = (user, statesArray = []) => {
   if (!user || user.role !== USER_ROLES.ADMIN) return false;
+  // If state admin is unverified or rejected, they have NO management permission!
+  if (user.assignedState !== 'ALL' && user.verificationStatus !== VERIFICATION_STATUS.VERIFIED) return false;
   const adminState = user.assignedState || 'ALL';
   if (adminState === 'ALL') return true;
   if (!statesArray || statesArray.length === 0) return true;
@@ -672,6 +676,184 @@ export const getAuditLogs = async (req, res, next) => {
         pages: Math.ceil(total / Number(limit))
       }
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ==========================================
+// STATE ADMINISTRATOR GOVERNANCE & APPROVALS
+// ==========================================
+
+export const getStateAdmins = async (req, res, next) => {
+  try {
+    const { status, state } = req.query;
+    const filter = {
+      role: USER_ROLES.ADMIN,
+      assignedState: { $exists: true, $ne: 'ALL' }
+    };
+
+    if (status && status !== 'ALL') filter.verificationStatus = status;
+    if (state && state !== 'ALL') filter.assignedState = state;
+
+    const admins = await User.find(filter)
+      .select('-passwordHash')
+      .populate('verifiedBy', 'name email')
+      .sort({ createdAt: -1 });
+
+    return sendSuccess(res, {
+      admins,
+      isSuperAdmin: (req.user.assignedState || 'ALL') === 'ALL',
+      totalCount: admins.length
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const createStateAdmin = async (req, res, next) => {
+  try {
+    // Only Super Admin can directly provision state administrators
+    const adminState = req.user.assignedState || 'ALL';
+    if (adminState !== 'ALL') {
+      return sendError(
+        res,
+        'Permission Denied: Only the National Super Administrator can provision State Administrator accounts.',
+        403,
+        'SUPER_ADMIN_REQUIRED'
+      );
+    }
+
+    const { name, email, password, phone, assignedState, verificationStatus } = req.body;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return sendError(res, 'An account with this email address already exists.', 409, 'EMAIL_EXISTS');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+
+    const status = verificationStatus || VERIFICATION_STATUS.VERIFIED;
+    const newAdmin = await User.create({
+      name,
+      email,
+      passwordHash,
+      phone: phone || '',
+      role: USER_ROLES.ADMIN,
+      assignedState,
+      verificationStatus: status,
+      verifiedBy: status === VERIFICATION_STATUS.VERIFIED ? req.user._id : null,
+      verifiedAt: status === VERIFICATION_STATUS.VERIFIED ? new Date() : null,
+      isActive: true
+    });
+
+    await logAuditEvent({
+      actorId: req.user._id,
+      actorRole: req.user.role,
+      action: 'STATE_ADMIN_CREATED_BY_SUPER',
+      entityType: 'User',
+      entityId: newAdmin._id,
+      summary: `Super Admin created state admin for ${assignedState}: ${newAdmin.name} (${newAdmin.email}) - Status: ${status}`
+    });
+
+    const sanitized = newAdmin.toObject();
+    delete sanitized.passwordHash;
+
+    return sendSuccess(
+      res,
+      { admin: sanitized },
+      `State Administrator account for ${assignedState} provisioned successfully`,
+      201
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const verifyStateAdmin = async (req, res, next) => {
+  try {
+    const adminState = req.user.assignedState || 'ALL';
+    if (adminState !== 'ALL') {
+      return sendError(
+        res,
+        'Permission Denied: Only the National Super Administrator can verify and approve State Administrators.',
+        403,
+        'SUPER_ADMIN_REQUIRED'
+      );
+    }
+
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser || targetUser.role !== USER_ROLES.ADMIN) {
+      return sendError(res, 'State administrator account not found', 404);
+    }
+
+    targetUser.verificationStatus = VERIFICATION_STATUS.VERIFIED;
+    targetUser.verifiedBy = req.user._id;
+    targetUser.verifiedAt = new Date();
+    targetUser.isActive = true;
+    await targetUser.save();
+
+    await logAuditEvent({
+      actorId: req.user._id,
+      actorRole: req.user.role,
+      action: 'STATE_ADMIN_VERIFIED',
+      entityType: 'User',
+      entityId: targetUser._id,
+      summary: `Super Admin approved and verified State Admin for ${targetUser.assignedState}: ${targetUser.name} (${targetUser.email})`
+    });
+
+    const sanitized = targetUser.toObject();
+    delete sanitized.passwordHash;
+
+    return sendSuccess(
+      res,
+      { admin: sanitized },
+      `State Administrator account for ${targetUser.assignedState} has been verified and approved.`
+    );
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const rejectStateAdmin = async (req, res, next) => {
+  try {
+    const adminState = req.user.assignedState || 'ALL';
+    if (adminState !== 'ALL') {
+      return sendError(
+        res,
+        'Permission Denied: Only the National Super Administrator can reject State Administrators.',
+        403,
+        'SUPER_ADMIN_REQUIRED'
+      );
+    }
+
+    const targetUser = await User.findById(req.params.id);
+    if (!targetUser || targetUser.role !== USER_ROLES.ADMIN) {
+      return sendError(res, 'State administrator account not found', 404);
+    }
+
+    targetUser.verificationStatus = VERIFICATION_STATUS.REJECTED;
+    targetUser.isActive = false;
+    await targetUser.save();
+
+    await logAuditEvent({
+      actorId: req.user._id,
+      actorRole: req.user.role,
+      action: 'STATE_ADMIN_REJECTED',
+      entityType: 'User',
+      entityId: targetUser._id,
+      summary: `Super Admin rejected State Admin application for ${targetUser.assignedState}: ${targetUser.name} (${targetUser.email})`
+    });
+
+    const sanitized = targetUser.toObject();
+    delete sanitized.passwordHash;
+
+    return sendSuccess(
+      res,
+      { admin: sanitized },
+      `State Administrator application for ${targetUser.assignedState} has been rejected.`
+    );
   } catch (err) {
     next(err);
   }

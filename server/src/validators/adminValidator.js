@@ -63,6 +63,15 @@ export const updateTripSchema = z.object({
   status: z.enum(['SCHEDULED', 'ON_ROUTE', 'COMPLETED', 'CANCELLED', 'DELAYED']).optional()
 });
 
+export const createStateAdminSchema = z.object({
+  name: z.string().trim().min(2, 'Name is required'),
+  email: z.string().trim().email('Invalid email address').toLowerCase(),
+  password: z.string().min(6, 'Password must be at least 6 characters long'),
+  phone: z.string().trim().optional().default(''),
+  assignedState: z.string().trim().min(2, 'Assigned state is required'),
+  verificationStatus: z.enum(['PENDING', 'VERIFIED', 'REJECTED']).optional().default('VERIFIED')
+});
+
 export const cancellationPolicySchema = z.object({
   policyName: z.string().trim().min(2),
   refundTiers: z.array(z.object({
