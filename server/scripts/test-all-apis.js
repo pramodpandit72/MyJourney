@@ -1,18 +1,19 @@
 // Comprehensive End-to-End API Audit Script for MyJourney
 const BASE_URL = 'http://localhost:5000/api/v1';
+const ROOT_URL = 'http://localhost:5000/api';
 
 const results = [];
 
 function record(name, status, details = '') {
   results.push({ name, status, details });
-  const icon = status === 'PASS' ? '✅' : '❌';
+  const icon = status === 'PASS' ? '✅' : status === 'SKIP' ? '⚠️' : '❌';
   console.log(`${icon} [${status}] ${name}${details ? ` -> ${details}` : ''}`);
 }
 
 async function runAudit() {
-  console.log('====================================================');
-  console.log('🚀 STARTING FULL API & FEATURE AUDIT — MYJOURNEY');
-  console.log('====================================================\n');
+  console.log('================================================================');
+  console.log('🚀 MYJOURNEY FULL COMPREHENSIVE API & FEATURE AUDIT');
+  console.log('================================================================\n');
 
   let adminToken = '';
   let operatorToken = '';
@@ -21,15 +22,41 @@ async function runAudit() {
   let testTripId = '';
   let createdBookingPNR = '';
 
+  // 0. HEALTH & DOCS
+  console.log('--- 0. System Health & API Documentation ---');
+  try {
+    const res = await fetch(`${ROOT_URL}/health`);
+    const data = await res.json();
+    if (res.status === 200 && data.status === 'UP') {
+      record('GET /api/health', 'PASS', `Service: ${data.service}`);
+    } else {
+      record('GET /api/health', 'FAIL', `Status ${res.status}`);
+    }
+  } catch (err) {
+    record('GET /api/health', 'FAIL', err.message);
+  }
+
+  try {
+    const res = await fetch(`${ROOT_URL}/docs.json`);
+    const data = await res.json();
+    if (res.status === 200 && data.openapi) {
+      record('GET /api/docs.json', 'PASS', `OpenAPI Version: ${data.openapi}, Title: ${data.info?.title}`);
+    } else {
+      record('GET /api/docs.json', 'FAIL', `Status ${res.status}`);
+    }
+  } catch (err) {
+    record('GET /api/docs.json', 'FAIL', err.message);
+  }
+
   // 1. PUBLIC APIS
-  console.log('--- 1. Testing Public APIs ---');
+  console.log('\n--- 1. Public Search & Corridor Discovery APIs ---');
   try {
     const res = await fetch(`${BASE_URL}/stops`);
     const data = await res.json();
     if (res.status === 200 && data.success && data.data?.stops?.length > 0) {
       record('GET /stops', 'PASS', `Found ${data.data.stops.length} active stops`);
     } else {
-      record('GET /stops', 'FAIL', `Status ${res.status}: ${JSON.stringify(data)}`);
+      record('GET /stops', 'FAIL', `Status ${res.status}`);
     }
   } catch (err) {
     record('GET /stops', 'FAIL', err.message);
@@ -52,16 +79,28 @@ async function runAudit() {
   }
 
   try {
-    const res = await fetch(`${BASE_URL}/trips?originQuery=jalandhar&destinationQuery=pharwara`);
+    const res = await fetch(`${BASE_URL}/trips?originQuery=delhi&destinationQuery=jaipur`);
     const data = await res.json();
     if (res.status === 200 && data.success && data.data.trips?.length > 0) {
-      record('GET /trips (alias & stop query: jalandhar -> pharwara)', 'PASS', `Found ${data.data.trips.length} matching trips with stop aliases`);
+      record('GET /trips (corridor query: Delhi -> Jaipur)', 'PASS', `Found ${data.data.trips.length} active trips`);
       if (!testTripId) testTripId = data.data.trips[0]._id;
     } else {
-      record('GET /trips (alias query)', 'FAIL', `Status ${res.status}`);
+      record('GET /trips (corridor query)', 'FAIL', `Status ${res.status}`);
     }
   } catch (err) {
-    record('GET /trips (alias query)', 'FAIL', err.message);
+    record('GET /trips (corridor query)', 'FAIL', err.message);
+  }
+
+  try {
+    const res = await fetch(`${BASE_URL}/auth/available-states`);
+    const data = await res.json();
+    if (res.status === 200 && data.success && data.data.states?.length > 0) {
+      record('GET /auth/available-states', 'PASS', `Catalogued ${data.data.states.length} Indian States & UTs`);
+    } else {
+      record('GET /auth/available-states', 'FAIL', `Status ${res.status}`);
+    }
+  } catch (err) {
+    record('GET /auth/available-states', 'FAIL', err.message);
   }
 
   if (testTripId) {
@@ -91,7 +130,7 @@ async function runAudit() {
   }
 
   // 2. AUTHENTICATION APIS
-  console.log('\n--- 2. Testing Authentication APIs ---');
+  console.log('\n--- 2. Authentication & Identity Management ---');
   // Admin Login
   try {
     const res = await fetch(`${BASE_URL}/auth/login`, {
@@ -102,12 +141,12 @@ async function runAudit() {
     const data = await res.json();
     if (res.status === 200 && data.success && data.data.token) {
       adminToken = data.data.token;
-      record('POST /auth/login (Admin)', 'PASS', `Role: ${data.data.user.role}`);
+      record('POST /auth/login (National Super Admin)', 'PASS', `Role: ${data.data.user.role}, State: ${data.data.user.assignedState}`);
     } else {
-      record('POST /auth/login (Admin)', 'FAIL', `Status ${res.status}: ${data.message || ''}`);
+      record('POST /auth/login (National Super Admin)', 'FAIL', `Status ${res.status}: ${data.message || ''}`);
     }
   } catch (err) {
-    record('POST /auth/login (Admin)', 'FAIL', err.message);
+    record('POST /auth/login (National Super Admin)', 'FAIL', err.message);
   }
 
   // Operator Login
@@ -120,12 +159,12 @@ async function runAudit() {
     const data = await res.json();
     if (res.status === 200 && data.success && data.data.token) {
       operatorToken = data.data.token;
-      record('POST /auth/login (Operator)', 'PASS', `Role: ${data.data.user.role}`);
+      record('POST /auth/login (State Operator)', 'PASS', `Role: ${data.data.user.role}`);
     } else {
-      record('POST /auth/login (Operator)', 'FAIL', `Status ${res.status}: ${data.message || ''}`);
+      record('POST /auth/login (State Operator)', 'FAIL', `Status ${res.status}: ${data.message || ''}`);
     }
   } catch (err) {
-    record('POST /auth/login (Operator)', 'FAIL', err.message);
+    record('POST /auth/login (State Operator)', 'FAIL', err.message);
   }
 
   // Customer Login
@@ -139,12 +178,12 @@ async function runAudit() {
     if (res.status === 200 && data.success && data.data.token) {
       customerToken = data.data.token;
       customerUser = data.data.user;
-      record('POST /auth/login (Customer)', 'PASS', `Customer: ${customerUser.name || customerUser.email}`);
+      record('POST /auth/login (Passenger)', 'PASS', `User: ${customerUser.name || customerUser.email}`);
     } else {
-      record('POST /auth/login (Customer)', 'FAIL', `Status ${res.status}: ${data.message || ''}`);
+      record('POST /auth/login (Passenger)', 'FAIL', `Status ${res.status}: ${data.message || ''}`);
     }
   } catch (err) {
-    record('POST /auth/login (Customer)', 'FAIL', err.message);
+    record('POST /auth/login (Passenger)', 'FAIL', err.message);
   }
 
   // Customer Profile (GET /auth/me)
@@ -162,7 +201,7 @@ async function runAudit() {
     record('GET /auth/me', 'FAIL', err.message);
   }
 
-  // Registration of New User
+  // Registration of New Passenger
   const randomEmail = `audit_user_${Date.now()}@myjourney.in`;
   try {
     const res = await fetch(`${BASE_URL}/auth/register`, {
@@ -177,12 +216,12 @@ async function runAudit() {
     });
     const data = await res.json();
     if (res.status === 201 && data.success && data.data.token) {
-      record('POST /auth/register', 'PASS', `Registered new customer: ${randomEmail}`);
+      record('POST /auth/register (Passenger)', 'PASS', `Registered: ${randomEmail}`);
     } else {
-      record('POST /auth/register', 'FAIL', `Status ${res.status}: ${JSON.stringify(data)}`);
+      record('POST /auth/register (Passenger)', 'FAIL', `Status ${res.status}: ${JSON.stringify(data)}`);
     }
   } catch (err) {
-    record('POST /auth/register', 'FAIL', err.message);
+    record('POST /auth/register (Passenger)', 'FAIL', err.message);
   }
 
   // Logout
@@ -190,7 +229,7 @@ async function runAudit() {
     const res = await fetch(`${BASE_URL}/auth/logout`, { method: 'POST' });
     const data = await res.json();
     if (res.status === 200 && data.success) {
-      record('POST /auth/logout', 'PASS', 'Logged out and cleared auth cookie');
+      record('POST /auth/logout', 'PASS', 'Cleared auth cookie');
     } else {
       record('POST /auth/logout', 'FAIL', `Status ${res.status}`);
     }
@@ -199,8 +238,7 @@ async function runAudit() {
   }
 
   // 3. BOOKINGS WORKFLOW
-  console.log('\n--- 3. Testing Customer Booking Workflow ---');
-  // First, find an upcoming trip that has available seats and valid stops
+  console.log('\n--- 3. Customer Booking & Cancellation Workflow ---');
   try {
     const searchRes = await fetch(`${BASE_URL}/trips?originQuery=delhi&destinationQuery=jaipur`);
     const searchData = await searchRes.json();
@@ -248,7 +286,7 @@ async function runAudit() {
         record('POST /bookings', 'SKIP', 'No available seat found on trip');
       }
     } else {
-      record('POST /bookings', 'SKIP', 'No active trip found for Delhi-Jaipur');
+      record('POST /bookings', 'SKIP', 'No upcoming trip found for Delhi-Jaipur');
     }
   } catch (err) {
     record('POST /bookings', 'FAIL', err.message);
@@ -277,7 +315,7 @@ async function runAudit() {
     });
     const data = await res.json();
     if (res.status === 200 && data.success && data.data?.booking) {
-      record(`GET /bookings/:pnr (${pnrToQuery})`, 'PASS', `Status: ${data.data.booking.status}, Total: ₹${data.data.booking.totalAmount}`);
+      record(`GET /bookings/:pnr (${pnrToQuery})`, 'PASS', `Status: ${data.data.booking.status}, Fare: ₹${data.data.booking.totalAmount}`);
     } else {
       record(`GET /bookings/:pnr (${pnrToQuery})`, 'FAIL', `Status ${res.status}`);
     }
@@ -294,7 +332,7 @@ async function runAudit() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${customerToken}`
         },
-        body: JSON.stringify({ cancellationReason: 'E2E Audit cancellation test' })
+        body: JSON.stringify({ cancellationReason: 'Audit cancellation test' })
       });
       const data = await res.json();
       if (res.status === 200 && data.success && data.data?.booking?.status === 'CANCELLED') {
@@ -308,7 +346,7 @@ async function runAudit() {
   }
 
   // 4. OPERATOR APIS
-  console.log('\n--- 4. Testing Operator APIs & Manifests ---');
+  console.log('\n--- 4. State Roadways Operator Portal APIs ---');
   try {
     const res = await fetch(`${BASE_URL}/operator/dashboard`, {
       headers: { Authorization: `Bearer ${operatorToken}` }
@@ -378,7 +416,7 @@ async function runAudit() {
   }
 
   // 5. ADMIN APIS
-  console.log('\n--- 5. Testing Admin Operations & Governance ---');
+  console.log('\n--- 5. Government Administration & Oversight APIs ---');
   try {
     const res = await fetch(`${BASE_URL}/admin/dashboard`, {
       headers: { Authorization: `Bearer ${adminToken}` }
@@ -387,7 +425,7 @@ async function runAudit() {
     if (res.status === 200 && data.success && data.data?.summary) {
       record('GET /admin/dashboard', 'PASS', `Total Bookings: ${data.data.summary.totalBookings}, Revenue: ₹${data.data.summary.totalRevenue}`);
     } else {
-      record('GET /admin/dashboard', 'FAIL', `Status ${res.status}: ${data.message || ''}`);
+      record('GET /admin/dashboard', 'FAIL', `Status ${res.status}`);
     }
   } catch (err) {
     record('GET /admin/dashboard', 'FAIL', err.message);
@@ -483,7 +521,7 @@ async function runAudit() {
     });
     const data = await res.json();
     if (res.status === 200 && data.success && data.data?.policy) {
-      record('GET /admin/cancellation-policy', 'PASS', `Slabs: ${data.data.policy.slabs?.length || 0}`);
+      record('GET /admin/cancellation-policy', 'PASS', `Policy: ${data.data.policy.policyName || 'Standard'}`);
     } else {
       record('GET /admin/cancellation-policy', 'FAIL', `Status ${res.status}`);
     }
@@ -505,9 +543,25 @@ async function runAudit() {
     record('GET /admin/audit-logs', 'FAIL', err.message);
   }
 
-  // 6. RBAC SECURITY BOUNDARY CHECKS
-  console.log('\n--- 6. Security Boundary Checks (RBAC) ---');
-  // Customer trying to access Admin Dashboard -> Must be 403 Forbidden
+  // 6. STATE ADMINS GOVERNANCE
+  console.log('\n--- 6. State Administrators Governance & Super Admin Controls ---');
+  try {
+    const res = await fetch(`${BASE_URL}/admin/state-admins`, {
+      headers: { Authorization: `Bearer ${adminToken}` }
+    });
+    const data = await res.json();
+    if (res.status === 200 && data.success && Array.isArray(data.data?.admins)) {
+      record('GET /admin/state-admins', 'PASS', `Found ${data.data.admins.length} state administrators`);
+    } else {
+      record('GET /admin/state-admins', 'FAIL', `Status ${res.status}`);
+    }
+  } catch (err) {
+    record('GET /admin/state-admins', 'FAIL', err.message);
+  }
+
+  // 7. RBAC SECURITY CHECKS
+  console.log('\n--- 7. Security Boundary & Access Control Enforcement (RBAC) ---');
+  // Customer blocked from /admin/dashboard -> 403
   try {
     const res = await fetch(`${BASE_URL}/admin/dashboard`, {
       headers: { Authorization: `Bearer ${customerToken}` }
@@ -521,24 +575,38 @@ async function runAudit() {
     record('RBAC Check', 'FAIL', err.message);
   }
 
-  // Unauthenticated user trying to access /bookings/my -> Must be 401 Unauthorized
+  // Customer blocked from /operator/dashboard -> 403
   try {
-    const res = await fetch(`${BASE_URL}/bookings/my`);
-    if (res.status === 401) {
-      record('RBAC: Anonymous user blocked from /bookings/my', 'PASS', 'Correctly returned 401 Unauthorized');
+    const res = await fetch(`${BASE_URL}/operator/dashboard`, {
+      headers: { Authorization: `Bearer ${customerToken}` }
+    });
+    if (res.status === 403) {
+      record('RBAC: Customer blocked from /operator/dashboard', 'PASS', 'Correctly returned 403 Forbidden');
     } else {
-      record('RBAC: Anonymous user blocked from /bookings/my', 'PASS', 'Correctly returned 401 Unauthorized');
+      record('RBAC: Customer blocked from /operator/dashboard', 'FAIL', `Expected 403, got ${res.status}`);
     }
   } catch (err) {
     record('RBAC Check', 'FAIL', err.message);
   }
 
-  console.log('\n====================================================');
+  // Unauthenticated user blocked from /bookings/my -> 401
+  try {
+    const res = await fetch(`${BASE_URL}/bookings/my`);
+    if (res.status === 401) {
+      record('RBAC: Anonymous user blocked from /bookings/my', 'PASS', 'Correctly returned 401 Unauthorized');
+    } else {
+      record('RBAC: Anonymous user blocked from /bookings/my', 'FAIL', `Expected 401, got ${res.status}`);
+    }
+  } catch (err) {
+    record('RBAC Check', 'FAIL', err.message);
+  }
+
+  console.log('\n================================================================');
   const passCount = results.filter(r => r.status === 'PASS').length;
   const failCount = results.filter(r => r.status === 'FAIL').length;
   const skipCount = results.filter(r => r.status === 'SKIP').length;
-  console.log(`📊 AUDIT SUMMARY: Total: ${results.length} | Passed: ${passCount} | Failed: ${failCount} | Skipped: ${skipCount}`);
-  console.log('====================================================\n');
+  console.log(`📊 FINAL AUDIT SUMMARY: Total Tests: ${results.length} | Passed: ${passCount} | Failed: ${failCount} | Skipped: ${skipCount}`);
+  console.log('================================================================\n');
 }
 
 runAudit();
