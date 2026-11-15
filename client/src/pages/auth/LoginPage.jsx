@@ -43,19 +43,19 @@ export const LoginPage = () => {
     }
   };
 
-  const setDemoCredentials = (demoEmail) => {
+  const setDemoCredentials = (demoEmail, demoPassword = 'Password@123') => {
     setEmail(demoEmail);
-    setPassword('Password@123');
+    setPassword(demoPassword);
     setError('');
   };
 
   const demoAccounts = [
-    { label: 'Super Admin (All States)', email: 'admin@myjourney.in', desc: 'National Scope' },
-    { label: 'Punjab State Admin', email: 'admin.punjab@myjourney.in', desc: 'Punjab Timetables' },
-    { label: 'Delhi State Admin', email: 'admin.delhi@myjourney.in', desc: 'Delhi Timetables' },
-    { label: 'Rajasthan State Admin', email: 'admin.rajasthan@myjourney.in', desc: 'Rajasthan Timetables' },
-    { label: 'Fleet Operator', email: 'operator.delhi@myjourney.in', desc: 'Manifests' },
-    { label: 'Passenger Customer', email: 'customer@myjourney.in', desc: 'Bookings' }
+    { label: 'Super Admin (All States)', email: 'nwdpramod12305901@gmail.com', password: '@123Prazapati', desc: 'National Scope' },
+    { label: 'Punjab State Admin', email: 'admin.punjab@myjourney.in', password: 'Password@123', desc: 'Punjab Timetables' },
+    { label: 'Delhi State Admin', email: 'admin.delhi@myjourney.in', password: 'Password@123', desc: 'Delhi Timetables' },
+    { label: 'Rajasthan State Admin', email: 'admin.rajasthan@myjourney.in', password: 'Password@123', desc: 'Rajasthan Timetables' },
+    { label: 'Fleet Operator', email: 'operator.delhi@myjourney.in', password: 'Password@123', desc: 'Manifests' },
+    { label: 'Passenger Customer', email: 'customer@myjourney.in', password: 'Password@123', desc: 'Bookings' }
   ];
 
   return (
@@ -86,7 +86,7 @@ export const LoginPage = () => {
                 <button
                   key={acc.email}
                   type="button"
-                  onClick={() => setDemoCredentials(acc.email)}
+                  onClick={() => setDemoCredentials(acc.email, acc.password)}
                   className="p-2 rounded-lg bg-white dark:bg-[#162B22] hover:bg-[#DCFCE7] dark:hover:bg-[#1C382C] border border-[#DCE7DF] dark:border-[#294A38] text-left transition-colors cursor-pointer"
                 >
                   <span className="text-xs font-bold block text-[#166534] dark:text-[#4ADE80]">
@@ -121,7 +121,7 @@ export const LoginPage = () => {
                 type="email"
                 icon={Mail}
                 required
-                placeholder="name@myjourney.in"
+                placeholder="Enter email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />

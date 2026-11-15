@@ -127,7 +127,7 @@ export const ContactPage = () => {
                     <Input
                       label="Full Name *"
                       required
-                      placeholder="Your name"
+                      placeholder="Enter Full Name"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
@@ -135,7 +135,7 @@ export const ContactPage = () => {
                       label="Email Address *"
                       type="email"
                       required
-                      placeholder="name@example.com"
+                      placeholder="Enter email"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     />

@@ -762,7 +762,7 @@ export const SearchResultsPage = () => {
                           <input
                             type="text"
                             required
-                            placeholder="e.g. Ramesh Kumar"
+                            placeholder="Enter Full Name"
                             value={p.name}
                             onChange={(e) => handlePassengerChange(idx, 'name', e.target.value)}
                             className="w-full h-10 px-3 bg-white dark:bg-[#162B22] border border-[#DCE7DF] dark:border-[#294A38] rounded-lg text-xs font-medium text-[#172B24] dark:text-[#F0FDF4] focus:outline-none focus:border-[#166534] dark:focus:border-[#4ADE80]"

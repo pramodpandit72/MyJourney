@@ -5,7 +5,19 @@ const baseInputClasses =
   'w-full h-10 px-3 bg-white dark:bg-[#10231B] border border-[#DCE7DF] dark:border-[#294A38] rounded-lg text-sm text-[#172B24] dark:text-[#F0FDF4] placeholder:text-[#64748B] dark:placeholder:text-[#A7C4B0] focus:outline-none focus:border-[#166534] dark:focus:border-[#4ADE80] focus:ring-2 focus:ring-[#166534]/20 dark:focus:ring-[#4ADE80]/20 disabled:opacity-60 disabled:cursor-not-allowed transition-colors';
 
 export const Input = React.forwardRef(
-  ({ label, error, icon: Icon, hint, className = '', id, ...props }, ref) => {
+  ({ label, error, icon: Icon, hint, className = '', id, placeholder, type, ...props }, ref) => {
+    let resolvedPlaceholder = placeholder;
+    if (!resolvedPlaceholder) {
+      const lowerLabel = (label || '').toLowerCase();
+      if (type === 'email' || lowerLabel.includes('email')) {
+        resolvedPlaceholder = 'Enter email';
+      } else if (type === 'tel' || lowerLabel.includes('phone') || lowerLabel.includes('mobile')) {
+        resolvedPlaceholder = 'Enter mobile no.';
+      } else if (lowerLabel.includes('name')) {
+        resolvedPlaceholder = 'Enter Full Name';
+      }
+    }
+
     return (
       <div className="space-y-1.5 w-full">
         {label && (
@@ -23,6 +35,8 @@ export const Input = React.forwardRef(
           <input
             ref={ref}
             id={id}
+            type={type}
+            placeholder={resolvedPlaceholder}
             className={`${baseInputClasses} ${Icon ? 'pl-9' : ''} ${
               error ? 'border-[#B91C1C] dark:border-[#F87171]' : ''
             } ${className}`}
@@ -60,13 +74,14 @@ export const Select = React.forwardRef(
           <select
             ref={ref}
             id={id}
-            className={`${baseInputClasses} ${Icon ? 'pl-9' : ''} ${
+            className={`${baseInputClasses} appearance-none pr-9 cursor-pointer ${Icon ? 'pl-9' : ''} ${
               error ? 'border-[#B91C1C] dark:border-[#F87171]' : ''
             } ${className}`}
             {...props}
           >
             {children}
           </select>
+          <ChevronDown className="w-4 h-4 text-[#64748B] dark:text-[#A7C4B0] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
         </div>
         {error && (
           <p className="text-[11px] font-medium text-[#B91C1C] dark:text-[#F87171]">{error}</p>

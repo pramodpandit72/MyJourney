@@ -242,7 +242,7 @@ export const AdminOperatorsPage = () => {
               label="Contact Email *"
               type="email"
               required
-              placeholder="ops@myjourney.in"
+              placeholder="Enter email"
               value={formEmail}
               onChange={(e) => setFormEmail(e.target.value)}
             />
@@ -251,7 +251,7 @@ export const AdminOperatorsPage = () => {
               label="Phone Helpline *"
               type="tel"
               required
-              placeholder="+91-11-23860000"
+              placeholder="Enter mobile no."
               value={formPhone}
               onChange={(e) => setFormPhone(e.target.value)}
             />

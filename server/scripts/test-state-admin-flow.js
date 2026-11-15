@@ -81,12 +81,12 @@ async function runTest() {
   }
 
   // Step 5: Super Admin logs in
-  console.log('\n5️⃣ Logging in as Super Admin (admin@myjourney.in)...');
+  console.log('\n5️⃣ Logging in as Super Admin (nwdpramod12305901@gmail.com)...');
   const superLoginRes = await request('/auth/login', {
     method: 'POST',
     body: JSON.stringify({
-      email: 'admin@myjourney.in',
-      password: 'Password@123'
+      email: 'nwdpramod12305901@gmail.com',
+      password: '@123Prazapati'
     })
   });
   if (!superLoginRes.ok) {

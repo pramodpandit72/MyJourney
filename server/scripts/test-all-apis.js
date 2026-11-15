@@ -136,7 +136,7 @@ async function runAudit() {
     const res = await fetch(`${BASE_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'admin@myjourney.in', password: 'Password@123' })
+      body: JSON.stringify({ email: 'nwdpramod12305901@gmail.com', password: '@123Prazapati' })
     });
     const data = await res.json();
     if (res.status === 200 && data.success && data.data.token) {

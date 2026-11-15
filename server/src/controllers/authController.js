@@ -196,3 +196,84 @@ export const getMe = async (req, res) => {
   return sendSuccess(res, { user });
 };
 
+export const updateProfile = async (req, res, next) => {
+  try {
+    const { name, email, phone, currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return sendError(res, 'User not found', 404, 'NOT_FOUND');
+    }
+
+    // If email is changing, check uniqueness across other accounts
+    if (email && email.toLowerCase() !== user.email.toLowerCase()) {
+      const existing = await User.findOne({
+        email: email.toLowerCase(),
+        _id: { $ne: user._id }
+      });
+      if (existing) {
+        return sendError(
+          res,
+          'Email address is already in use by another account',
+          409,
+          'EMAIL_EXISTS'
+        );
+      }
+      user.email = email.toLowerCase();
+    }
+
+    if (name && name.trim()) {
+      user.name = name.trim();
+    }
+
+    if (phone !== undefined) {
+      user.phone = phone.trim();
+    }
+
+    // If changing password, verify current password first
+    if (newPassword) {
+      if (!currentPassword) {
+        return sendError(
+          res,
+          'Current password is required to set a new password',
+          400,
+          'CURRENT_PASSWORD_REQUIRED'
+        );
+      }
+      const isMatch = await user.comparePassword(currentPassword);
+      if (!isMatch) {
+        return sendError(res, 'Current password is incorrect', 400, 'INVALID_PASSWORD');
+      }
+      if (newPassword.length < 6) {
+        return sendError(
+          res,
+          'New password must be at least 6 characters long',
+          400,
+          'WEAK_PASSWORD'
+        );
+      }
+      const salt = await bcrypt.genSalt(10);
+      user.passwordHash = await bcrypt.hash(newPassword, salt);
+    }
+
+    await user.save();
+
+    await logAuditEvent({
+      actorId: user._id,
+      actorRole: user.role,
+      action: 'USER_PROFILE_UPDATED',
+      entityType: 'User',
+      entityId: user._id,
+      summary: `Passenger profile updated: ${user.name} (${user.email})`
+    });
+
+    const populatedUser = await User.findById(user._id)
+      .select('-passwordHash')
+      .populate('operatorId');
+
+    return sendAuthResponse(res, populatedUser, 200, 'Profile updated successfully');
+  } catch (err) {
+    next(err);
+  }
+};
+
+

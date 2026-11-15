@@ -37,7 +37,7 @@ The portal adopts an institutional, modern public-service aesthetic with complet
 
 3. **Multi-Level State Administration Hierarchy**:
    - **State Exclusivity**: Dynamic claiming mechanism (`GET /auth/available-states`). Only one self-registered administrator can claim an Indian state (e.g. *Jharkhand*, *Punjab*, *Delhi*); duplicate attempts are rejected with `409 Conflict`.
-   - **National Super Admin Oversight**: Newly registered state admins start as `PENDING` with timetable modifications locked until approved by the Super Admin (`admin@myjourney.in`) at `/admin/state-admins`.
+   - **National Super Admin Oversight**: Newly registered state admins start as `PENDING` with timetable modifications locked until approved by the Super Admin (`nwdpramod12305901@gmail.com`) at `/admin/state-admins`.
    - **Multi-Admin Provisioning**: Super Admins have permission to provision multiple administrators per state directly.
 
 4. **Institutional Design System (Light & Dark Theme)**:
@@ -111,7 +111,7 @@ MyJourney/
 
 | Role | Email | Password | Scope |
 | :--- | :--- | :--- | :--- |
-| **National Super Admin** | `admin@myjourney.in` | `Password@123` | National governance, State admin approvals & all timetables |
+| **National Super Admin** | `nwdpramod12305901@gmail.com` | `@123Prazapati` | National governance, State admin approvals & all timetables |
 | **Punjab State Admin** | `admin.punjab@myjourney.in` | `Password@123` | Punjab routes & PUNBUS timetables |
 | **Delhi State Admin** | `admin.delhi@myjourney.in` | `Password@123` | Delhi routes & DSRTC timetables |
 | **Rajasthan State Admin** | `admin.rajasthan@myjourney.in` | `Password@123` | Rajasthan routes & RSRTC timetables |

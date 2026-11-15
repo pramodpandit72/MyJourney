@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
+import { DEFAULT_AVAILABLE_STATES } from '../../constants/states.js';
 import {
   TableContainer,
   Table,
@@ -68,7 +69,7 @@ export const AdminStateAdminsPage = () => {
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [createError, setCreateError] = useState('');
 
-  const [availableStates, setAvailableStates] = useState([]);
+  const [availableStates, setAvailableStates] = useState(DEFAULT_AVAILABLE_STATES);
 
   const fetchAdmins = async () => {
     setLoading(true);
@@ -86,9 +87,12 @@ export const AdminStateAdminsPage = () => {
   const fetchStates = async () => {
     try {
       const res = await api.get('/auth/available-states');
-      setAvailableStates(res?.data?.states || []);
+      const list = res?.data?.states || res?.states || res?.data || [];
+      if (Array.isArray(list) && list.length > 0) {
+        setAvailableStates(list);
+      }
     } catch (err) {
-      console.error('Failed to load available states', err);
+      console.warn('Failed to load available states, using fallback:', err);
     }
   };
 
@@ -457,7 +461,7 @@ export const AdminStateAdminsPage = () => {
             <Input
               label="Officer Name *"
               required
-              placeholder="e.g. Anand Kumar"
+              placeholder="Enter Full Name"
               value={createName}
               onChange={(e) => setCreateName(e.target.value)}
             />
@@ -466,7 +470,7 @@ export const AdminStateAdminsPage = () => {
               label="Official Email *"
               type="email"
               required
-              placeholder="officer.state@myjourney.in"
+              placeholder="Enter email"
               value={createEmail}
               onChange={(e) => setCreateEmail(e.target.value)}
             />
@@ -481,7 +485,7 @@ export const AdminStateAdminsPage = () => {
 
             <Input
               label="Contact Phone"
-              placeholder="+91-9876543210"
+              placeholder="Enter mobile no."
               value={createPhone}
               onChange={(e) => setCreatePhone(e.target.value)}
             />

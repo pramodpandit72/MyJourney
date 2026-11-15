@@ -59,6 +59,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = (userData, token) => {
+    if (userData) {
+      setUser(userData);
+    }
+    if (token) {
+      localStorage.setItem('myjourney_token', token);
+    }
+  };
+
   const value = {
     user,
     loading,
@@ -69,6 +78,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateUser,
     refreshUser: fetchCurrentUser
   };
 

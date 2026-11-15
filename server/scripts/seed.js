@@ -110,11 +110,11 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
     const usersData = [
       {
         name: 'Chief Transport Administrator (All States)',
-        email: 'admin@myjourney.in',
-        legacyEmail: 'admin@yatrasetu.gov.in',
-        passwordHash,
+        email: 'nwdpramod12305901@gmail.com',
+        passwordHash: await bcrypt.hash('@123Prazapati', 10),
         role: USER_ROLES.ADMIN,
         assignedState: 'ALL',
+        verificationStatus: VERIFICATION_STATUS.VERIFIED,
         phone: '+91-9876543210'
       },
       {
@@ -202,7 +202,7 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
         doc.assignedState = userFields.assignedState || 'ALL';
         doc.name = userFields.name;
         doc.role = userFields.role;
-        doc.passwordHash = passwordHash;
+        doc.passwordHash = userFields.passwordHash || passwordHash;
         await doc.save();
       }
       userDocs.push(doc);
@@ -687,7 +687,7 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
     console.log('✅ MYJOURNEY DATABASE SEED COMPLETE');
     console.log('========================================');
     console.log('Demo Credentials:');
-    console.log('• Admin:    admin@myjourney.in / ' + SEED_PASSWORD);
+    console.log('• Super Admin: nwdpramod12305901@gmail.com / @123Prazapati');
     console.log('• Operator: operator.delhi@myjourney.in / ' + SEED_PASSWORD);
     console.log('• Operator: operator.jaipur@myjourney.in / ' + SEED_PASSWORD);
     console.log('• Customer: customer@myjourney.in / ' + SEED_PASSWORD);

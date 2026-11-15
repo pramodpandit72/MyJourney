@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import api from '../../services/api.js';
+import { DEFAULT_AVAILABLE_STATES } from '../../constants/states.js';
 import { BrandLogo, Button, Card, CardContent, Input, Select } from '../../components/ui/index.js';
 import {
   Lock,
@@ -28,40 +29,49 @@ export const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [assignedState, setAssignedState] = useState('');
-
-  const [availableStates, setAvailableStates] = useState([]);
+  const [availableStates, setAvailableStates] = useState(DEFAULT_AVAILABLE_STATES);
   const [loadingStates, setLoadingStates] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [pendingSuccessData, setPendingSuccessData] = useState(null);
 
-  useEffect(() => {
-    if (accountType === 'ADMIN') {
-      fetchAvailableStates();
-    }
-  }, [accountType]);
-
   const fetchAvailableStates = async () => {
     setLoadingStates(true);
     try {
       const res = await api.get('/auth/available-states');
-      const list = res?.data?.states || [];
-      setAvailableStates(list);
+      const list = res?.data?.states || res?.states || res?.data || [];
+      if (Array.isArray(list) && list.length > 0) {
+        setAvailableStates(list);
 
-      // Default select the first unclaimed state if available
-      const firstUnclaimed = list.find((s) => !s.isClaimed);
-      if (firstUnclaimed) {
-        setAssignedState(firstUnclaimed.state);
-      } else if (list.length > 0) {
-        setAssignedState(list[0].state);
+        // Auto-select first unclaimed state if none chosen yet
+        setAssignedState((prev) => {
+          if (prev) return prev;
+          const firstUnclaimed = list.find((s) => !s.isClaimed);
+          return firstUnclaimed ? firstUnclaimed.state : list[0].state;
+        });
       }
     } catch (err) {
-      console.error('Failed to load available states', err);
+      console.warn('Failed to load available states from API, using fallback list:', err);
     } finally {
       setLoadingStates(false);
     }
   };
+
+  // Fetch states immediately on page load
+  useEffect(() => {
+    fetchAvailableStates();
+  }, []);
+
+  // When switching to ADMIN account type, make sure a state is selected
+  useEffect(() => {
+    if (accountType === 'ADMIN') {
+      if (!assignedState && availableStates.length > 0) {
+        const firstUnclaimed = availableStates.find((s) => !s.isClaimed);
+        setAssignedState(firstUnclaimed ? firstUnclaimed.state : availableStates[0].state);
+      }
+    }
+  }, [accountType, availableStates, assignedState]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -259,7 +269,7 @@ export const RegisterPage = () => {
                 type="text"
                 icon={User}
                 required
-                placeholder={accountType === 'ADMIN' ? 'e.g. Ramesh Chandra' : 'e.g. Vikram Sharma'}
+                placeholder="Enter Full Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -270,7 +280,7 @@ export const RegisterPage = () => {
                 type="email"
                 icon={Mail}
                 required
-                placeholder={accountType === 'ADMIN' ? 'officer.jharkhand@myjourney.in' : 'name@example.com'}
+                placeholder="Enter email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -280,7 +290,7 @@ export const RegisterPage = () => {
                 label="Mobile Number"
                 type="tel"
                 icon={Phone}
-                placeholder="+91-9876543210"
+                placeholder="Enter mobile no."
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
@@ -294,28 +304,25 @@ export const RegisterPage = () => {
                   >
                     State Jurisdiction *
                   </label>
-                  {loadingStates ? (
-                    <div className="h-10 rounded-lg bg-[#F1F5F9] dark:bg-[#10231B] animate-pulse flex items-center px-3 text-xs text-[#64748B]">
-                      Loading state availability...
-                    </div>
-                  ) : (
-                    <Select
-                      id="reg-state"
-                      value={assignedState}
-                      onChange={(e) => setAssignedState(e.target.value)}
-                      required
-                    >
-                      {availableStates.map((s) => (
-                        <option
-                          key={s.state}
-                          value={s.state}
-                          disabled={s.isClaimed}
-                        >
-                          {s.state} {s.isClaimed ? '— [Admin Registered]' : '— [Available]'}
-                        </option>
-                      ))}
-                    </Select>
-                  )}
+                  <Select
+                    id="reg-state"
+                    value={assignedState}
+                    onChange={(e) => setAssignedState(e.target.value)}
+                    required
+                  >
+                    <option value="" disabled className="text-[#64748B] dark:bg-[#162B22]">
+                      -- Select State Jurisdiction --
+                    </option>
+                    {availableStates.map((s) => (
+                      <option
+                        key={s.state}
+                        value={s.state}
+                        className="bg-white dark:bg-[#162B22] text-[#172B24] dark:text-[#F0FDF4]"
+                      >
+                        {s.state} {s.isClaimed ? '— [Admin Registered]' : '— [Available]'}
+                      </option>
+                    ))}
+                  </Select>
                   {selectedStateClaimed && (
                     <p className="text-[11px] text-[#B91C1C] dark:text-[#F87171] font-medium flex items-center gap-1 mt-1">
                       <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
