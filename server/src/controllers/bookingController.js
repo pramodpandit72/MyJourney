@@ -1,8 +1,141 @@
 import Booking from '../models/Booking.js';
 import Trip from '../models/Trip.js';
+import SeatInventory from '../models/SeatInventory.js';
 import { createBooking, cancelBooking, BookingConflictError, BookingValidationError } from '../services/bookingService.js';
+import { validateRouteStops, calculateBookingFare } from '../services/fareService.js';
+import { createRazorpayOrder, verifyRazorpaySignature } from '../services/razorpayService.js';
 import { sendSuccess, sendError } from '../utils/response.js';
-import { USER_ROLES } from '../config/constants.js';
+import { USER_ROLES, PAYMENT_STATUS } from '../config/constants.js';
+
+export const getPaymentConfig = (req, res) => {
+  return sendSuccess(res, {
+    keyId: process.env.RAZORPAY_KEY_ID || '',
+    enabled: Boolean(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET)
+  });
+};
+
+export const handleCreatePaymentOrder = async (req, res, next) => {
+  try {
+    const { tripId, boardingStopId, droppingStopId, passengers, seatNumbers } = req.body;
+    const userId = req.user._id;
+
+    // 1. Validate trip
+    const trip = await Trip.findById(tripId).populate('routeId');
+    if (!trip) {
+      return sendError(res, 'Trip not found or no longer available.', 404, 'TRIP_NOT_FOUND');
+    }
+    if (trip.status !== 'SCHEDULED') {
+      return sendError(res, `Trip is not open for booking (status: ${trip.status}).`, 400, 'TRIP_NOT_BOOKABLE');
+    }
+    if (new Date(trip.departureAt).getTime() <= Date.now()) {
+      return sendError(res, 'Trip has already departed. Bookings are closed.', 400, 'TRIP_DEPARTED');
+    }
+
+    // 2. Validate route stops
+    const routeValidation = validateRouteStops(trip.routeId.stops, boardingStopId, droppingStopId);
+    if (!routeValidation.isValid) {
+      return sendError(res, routeValidation.error, 400, 'INVALID_ROUTE_STOPS');
+    }
+
+    // 3. Check seat availability in SeatInventory
+    const availableSeats = await SeatInventory.find({
+      tripId,
+      seatNumber: { $in: seatNumbers },
+      status: 'AVAILABLE'
+    });
+
+    if (availableSeats.length !== seatNumbers.length) {
+      const foundNumbers = new Set(availableSeats.map(s => s.seatNumber));
+      const unavailable = seatNumbers.filter(num => !foundNumbers.has(num));
+      return sendError(res, `One or more selected seats (${unavailable.join(', ')}) are no longer available.`, 409, 'SEAT_UNAVAILABLE', { conflictingSeats: unavailable });
+    }
+
+    // 4. Calculate fare
+    const fareResult = calculateBookingFare({
+      baseFare: trip.baseFare,
+      totalRouteDistance: trip.routeId.totalDistance,
+      segmentDistanceKm: routeValidation.segmentDistanceKm,
+      passengerCount: passengers.length
+    });
+
+    // 5. Create Razorpay order
+    const orderData = await createRazorpayOrder({
+      amountInRupees: fareResult.totalAmount,
+      receipt: `bkg_${Date.now()}`.slice(0, 40),
+      notes: {
+        tripId: tripId.toString(),
+        userId: userId.toString(),
+        seatNumbers: seatNumbers.join(',')
+      }
+    });
+
+    return sendSuccess(res, {
+      ...orderData,
+      totalAmount: fareResult.totalAmount,
+      fareBreakdown: fareResult
+    }, 'Razorpay payment order initialized');
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const handleVerifyPaymentAndBook = async (req, res, next) => {
+  try {
+    const {
+      tripId,
+      boardingStopId,
+      droppingStopId,
+      passengers,
+      seatNumbers,
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature
+    } = req.body;
+
+    const userId = req.user._id;
+
+    // 1. Verify Razorpay cryptographic signature
+    const isValidSignature = verifyRazorpaySignature({
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature
+    });
+
+    if (!isValidSignature) {
+      return sendError(res, 'Razorpay payment verification failed: Invalid cryptographic signature.', 400, 'PAYMENT_SIGNATURE_INVALID');
+    }
+
+    // 2. Complete booking atomically
+    const booking = await createBooking({
+      userId,
+      tripId,
+      boardingStopId,
+      droppingStopId,
+      passengers,
+      seatNumbers,
+      paymentStatus: PAYMENT_STATUS.PAID,
+      paymentMethod: 'RAZORPAY_TEST',
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature
+    });
+
+    return sendSuccess(
+      res,
+      { booking },
+      `Payment verified and booking confirmed with PNR: ${booking.pnr}`,
+      201
+    );
+  } catch (err) {
+    if (err instanceof BookingConflictError) {
+      return sendError(res, err.message, 409, err.code, { conflictingSeats: err.conflictingSeats });
+    }
+    if (err instanceof BookingValidationError) {
+      return sendError(res, err.message, err.statusCode, err.code);
+    }
+    next(err);
+  }
+};
 
 export const handleCreateBooking = async (req, res, next) => {
   try {

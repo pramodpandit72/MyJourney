@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
 import { BusSearchForm } from '../../components/forms/BusSearchForm.jsx';
 import { SeatMap } from '../../components/seats/SeatMap.jsx';
+import { loadRazorpayScript } from '../../services/razorpay.js';
 import {
   Breadcrumb,
   Button,
@@ -144,40 +145,150 @@ export const SearchResultsPage = () => {
     setPassengers(updated);
   };
 
-  const handleConfirmBooking = async (e) => {
-    e.preventDefault();
+  const validateBookingForm = () => {
     setBookingError('');
-
     if (selectedSeats.length === 0) {
       setBookingError('Please select at least one seat.');
-      return;
+      return false;
     }
 
     for (let i = 0; i < passengers.length; i++) {
       const p = passengers[i];
       if (!p.name || p.name.trim().length < 2) {
         setBookingError(`Please enter a valid name for passenger assigned to Seat ${p.seatNumber}.`);
-        return;
+        return false;
       }
       if (!p.age || isNaN(p.age) || Number(p.age) < 1 || Number(p.age) > 120) {
         setBookingError(`Please enter a valid age (1–120) for passenger on Seat ${p.seatNumber}.`);
-        return;
+        return false;
       }
     }
+    return true;
+  };
+
+  const getBookingPayload = () => ({
+    tripId: activeTrip._id,
+    boardingStopId: activeTrip.boardingStop?.stopId?._id || activeTrip.boardingStop?.stopId || originStopId,
+    droppingStopId: activeTrip.droppingStop?.stopId?._id || activeTrip.droppingStop?.stopId || destinationStopId,
+    passengers: passengers.map((p) => ({
+      ...p,
+      age: Number(p.age)
+    })),
+    seatNumbers: selectedSeats
+  });
+
+  const handleRazorpayBooking = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!validateBookingForm()) return;
 
     setBookingLoading(true);
+    setBookingError('');
+
     try {
-      const payload = {
-        tripId: activeTrip._id,
-        boardingStopId: activeTrip.boardingStop?.stopId?._id || activeTrip.boardingStop?.stopId || originStopId,
-        droppingStopId: activeTrip.droppingStop?.stopId?._id || activeTrip.droppingStop?.stopId || destinationStopId,
-        passengers: passengers.map((p) => ({
-          ...p,
-          age: Number(p.age)
-        })),
-        seatNumbers: selectedSeats
+      const isLoaded = await loadRazorpayScript();
+      if (!isLoaded) {
+        throw new Error('Failed to load Razorpay payment SDK. Please verify internet connection.');
+      }
+
+      const payload = getBookingPayload();
+
+      // 1. Initialize Razorpay order on backend
+      const orderRes = await api.post('/bookings/payment/create-order', payload);
+      const { orderId, amount, currency, keyId, isSandboxFallback } = orderRes.data;
+
+      // If Razorpay API keys are in simulator fallback mode
+      if (isSandboxFallback) {
+        toast.info('Razorpay Test Sandbox: Completing verified payment simulation...');
+        const verifyRes = await api.post('/bookings/payment/verify-and-book', {
+          ...payload,
+          razorpay_order_id: orderId,
+          razorpay_payment_id: `pay_sandbox_${Date.now()}`,
+          razorpay_signature: `sandbox_sig_${Date.now()}`
+        });
+
+        if (verifyRes?.data?.booking?.pnr) {
+          toast.success(`Razorpay Sandbox Payment Successful! PNR: ${verifyRes.data.booking.pnr}`);
+          navigate(`/ticket/${verifyRes.data.booking.pnr}?confirmed=true`);
+          return;
+        }
+      }
+
+      // 2. Launch Razorpay Checkout Modal
+      const options = {
+        key: keyId || import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: amount,
+        currency: currency || 'INR',
+        name: 'MyJourney',
+        description: `Bus Booking • ${activeTrip.operator?.name || 'Public Bus'} (Seats: ${selectedSeats.join(', ')})`,
+        image: '/bus.png',
+        order_id: orderId,
+        prefill: {
+          name: passengers[0]?.name || user?.name || '',
+          email: user?.email || passengers[0]?.email || '',
+          contact: passengers[0]?.phone || user?.phone || '9876543210'
+        },
+        theme: {
+          color: '#166534'
+        },
+        handler: async function (response) {
+          try {
+            setBookingLoading(true);
+            const verifyRes = await api.post('/bookings/payment/verify-and-book', {
+              ...payload,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+
+            if (verifyRes?.data?.booking?.pnr) {
+              toast.success(`Razorpay Payment Successful! PNR: ${verifyRes.data.booking.pnr}`);
+              navigate(`/ticket/${verifyRes.data.booking.pnr}?confirmed=true`);
+            }
+          } catch (verifyErr) {
+            setBookingError(verifyErr.message || 'Payment verification failed. Please try again.');
+          } finally {
+            setBookingLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setBookingLoading(false);
+            toast.info('Razorpay payment modal closed.');
+          }
+        }
       };
 
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (resp) {
+        setBookingError(resp.error?.description || 'Payment was declined or failed.');
+        setBookingLoading(false);
+      });
+      rzp.open();
+    } catch (err) {
+      if (err.code === 'SEAT_UNAVAILABLE' || err.statusCode === 409) {
+        setBookingError('One or more selected seats were just booked by another passenger. Seat map refreshed.');
+        try {
+          const seatRes = await api.get(`/trips/${activeTrip._id}/seats`);
+          setSeatLayoutData(seatRes?.data || null);
+          setSelectedSeats([]);
+          setPassengers([]);
+        } catch (e) {}
+      } else if (err.code === 'RAZORPAY_AUTH_FAILED' || err.statusCode === 401) {
+        setBookingError('Razorpay authentication failed: Key ID and Secret in server/.env do not match an active key pair. Please verify keys in Razorpay Dashboard or click "Direct Booking" to test right now.');
+      } else {
+        setBookingError(err.message || 'Payment initiation failed. Please check your connection.');
+      }
+      setBookingLoading(false);
+    }
+  };
+
+  const handleSimulatedBooking = async () => {
+    if (!validateBookingForm()) return;
+
+    setBookingLoading(true);
+    setBookingError('');
+    try {
+      const payload = getBookingPayload();
       const res = await api.post('/bookings', payload);
       if (res?.data?.booking?.pnr) {
         toast.success(`Booking confirmed! PNR: ${res.data.booking.pnr}`);
@@ -193,7 +304,7 @@ export const SearchResultsPage = () => {
           setPassengers([]);
         } catch (e) {}
       } else {
-        setBookingError(err.message || 'Booking confirmation failed. Please check your details.');
+        setBookingError(err.message || 'Booking confirmation failed.');
       }
     } finally {
       setBookingLoading(false);
@@ -620,7 +731,7 @@ export const SearchResultsPage = () => {
             {/* Passenger Details Form */}
             {selectedSeats.length > 0 && (
               <form
-                onSubmit={handleConfirmBooking}
+                onSubmit={handleRazorpayBooking}
                 className="space-y-5 pt-4 border-t border-[#DCE7DF] dark:border-[#294A38]"
               >
                 <div>
@@ -693,14 +804,19 @@ export const SearchResultsPage = () => {
                   ))}
                 </div>
 
-                {/* Simulated Academic Checkout Notice */}
-                <div className="p-3.5 rounded-lg bg-[#CCFBF1]/60 dark:bg-[#134E4A]/70 border border-[#0F766E]/25 dark:border-[#5EEAD4]/25 text-[#0F766E] dark:text-[#D1E7D8] text-xs space-y-1">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <ShieldCheck className="w-4 h-4 shrink-0" />
-                    <span>Simulated Academic Booking Confirmation</span>
+                {/* Razorpay Test Gateway Notice */}
+                <div className="p-3.5 rounded-lg bg-[#F0FDF4] dark:bg-[#10231B] border border-[#166534]/30 dark:border-[#4ADE80]/30 text-[#14532D] dark:text-[#D1E7D8] text-xs space-y-1.5 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-bold text-[#166534] dark:text-[#4ADE80]">
+                      <ShieldCheck className="w-4 h-4 shrink-0" />
+                      <span>Razorpay Payment Gateway (Test Mode Active)</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#DCFCE7] dark:bg-[#234B35] text-[#166534] dark:text-[#4ADE80]">
+                      Sandbox
+                    </span>
                   </div>
-                  <p className="text-[11px] leading-relaxed">
-                    MyJourney is an independent academic project. Confirming reserves your selected seats in MongoDB using ACID transactions and issues a verifiable digital PNR without processing real payment charges.
+                  <p className="text-[11px] leading-relaxed text-[#475569] dark:text-[#A7C4B0]">
+                    Simulate real Indian transport payments via UPI (use <code>success@razorpay</code>) or test cards. No real money is charged.
                   </p>
                 </div>
 
@@ -718,13 +834,24 @@ export const SearchResultsPage = () => {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                  <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                     <Button
+                      type="button"
                       variant="outline"
                       onClick={() => setActiveTrip(null)}
                       className="flex-1 sm:flex-initial"
                     >
                       Cancel
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleSimulatedBooking}
+                      disabled={bookingLoading}
+                      className="flex-1 sm:flex-initial text-xs"
+                      title="Skip gateway and book directly"
+                    >
+                      Direct Booking
                     </Button>
                     <Button
                       type="submit"
@@ -733,7 +860,7 @@ export const SearchResultsPage = () => {
                       className="flex-1 sm:flex-initial"
                     >
                       <CreditCard className="w-4 h-4" />
-                      <span>Confirm & Book Ticket</span>
+                      <span>Pay with Razorpay</span>
                     </Button>
                   </div>
                 </div>

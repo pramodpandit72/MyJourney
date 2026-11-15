@@ -38,7 +38,12 @@ export const createBooking = async ({
   boardingStopId,
   droppingStopId,
   passengers,
-  seatNumbers
+  seatNumbers,
+  paymentStatus = PAYMENT_STATUS.SIMULATED_SUCCESS,
+  paymentMethod = 'SIMULATED',
+  razorpayOrderId = null,
+  razorpayPaymentId = null,
+  razorpaySignature = null
 }) => {
   // 1. Fetch and validate Trip along with Route
   const trip = await Trip.findById(tripId).populate('routeId').populate('busId').populate('operatorId');
@@ -193,7 +198,11 @@ export const createBooking = async ({
       },
       totalAmount: fareResult.totalAmount,
       status: BOOKING_STATUS.CONFIRMED,
-      paymentStatus: PAYMENT_STATUS.SIMULATED_SUCCESS,
+      paymentStatus: paymentStatus || PAYMENT_STATUS.SIMULATED_SUCCESS,
+      paymentMethod: paymentMethod || 'SIMULATED',
+      razorpayOrderId: razorpayOrderId || null,
+      razorpayPaymentId: razorpayPaymentId || null,
+      razorpaySignature: razorpaySignature || null,
       bookingDate: new Date()
     });
 

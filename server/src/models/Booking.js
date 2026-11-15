@@ -112,6 +112,23 @@ const bookingSchema = new mongoose.Schema(
       enum: Object.values(PAYMENT_STATUS),
       default: PAYMENT_STATUS.SIMULATED_SUCCESS
     },
+    paymentMethod: {
+      type: String,
+      default: 'SIMULATED'
+    },
+    razorpayOrderId: {
+      type: String,
+      default: null,
+      index: true
+    },
+    razorpayPaymentId: {
+      type: String,
+      default: null
+    },
+    razorpaySignature: {
+      type: String,
+      default: null
+    },
     cancellationDetails: {
       cancelledAt: { type: Date, default: null },
       cancellationReason: { type: String, default: '' },
