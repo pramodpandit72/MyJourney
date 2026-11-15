@@ -64,5 +64,9 @@ router.post('/state-admins', validateRequest(createStateAdminSchema), adminContr
 router.patch('/state-admins/:id/verify', adminController.verifyStateAdmin);
 router.patch('/state-admins/:id/reject', adminController.rejectStateAdmin);
 
+// Privacy & Data Governance Settings (Super Admin exclusive permission)
+router.get('/privacy-settings', adminController.getPrivacySettings);
+router.put('/privacy-settings', adminController.updatePrivacySettings);
+
 export default router;
 

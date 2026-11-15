@@ -1,4 +1,5 @@
 import React from 'react';
+import { useAuth } from '../context/AuthContext.jsx';
 import { DashboardShell } from './DashboardShell.jsx';
 import {
   BarChart3,
@@ -16,9 +17,16 @@ import {
 } from 'lucide-react';
 
 export const AdminLayout = () => {
+  const { user } = useAuth();
+  const isSuperAdmin = (user?.assignedState || 'ALL') === 'ALL';
+
   const navItems = [
     { label: 'Overview', path: '/admin', icon: BarChart3 },
-    { label: 'State Admins', path: '/admin/state-admins', icon: ShieldCheck },
+    {
+      label: isSuperAdmin ? 'State Admins' : `${user?.assignedState || 'My State'} Admin`,
+      path: '/admin/state-admins',
+      icon: ShieldCheck
+    },
     { label: 'Operators', path: '/admin/operators', icon: Building2 },
     { label: 'Buses', path: '/admin/buses', icon: Bus },
     { label: 'Stops', path: '/admin/stops', icon: MapPin },
@@ -28,13 +36,13 @@ export const AdminLayout = () => {
     { label: 'Cancellation Policy', path: '/admin/policy', icon: Scale },
     { label: 'Reports', path: '/admin/reports', icon: FileBarChart2 },
     { label: 'Audit Logs', path: '/admin/audit-logs', icon: History },
-    { label: 'Settings', path: '/admin/settings', icon: Settings }
+    { label: isSuperAdmin ? 'Privacy & Settings' : 'Settings', path: '/admin/settings', icon: Settings }
   ];
 
   return (
     <DashboardShell
-      portalLabel="Admin Portal"
-      roleBadge="Administrator"
+      portalLabel={isSuperAdmin ? 'National Super Admin' : `${user?.assignedState || 'State'} Transport Admin`}
+      roleBadge={isSuperAdmin ? 'Super Administrator' : `${user?.assignedState} Admin`}
       navItems={navItems}
       rootPath="/admin"
     />

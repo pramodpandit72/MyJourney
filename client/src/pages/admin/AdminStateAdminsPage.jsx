@@ -181,13 +181,17 @@ export const AdminStateAdminsPage = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <span className="text-[11px] font-bold text-[#0F766E] dark:text-[#5EEAD4] uppercase tracking-wider">
-            National Transport Governance
+            {isSuperAdmin ? 'National Transport Governance' : `${user?.assignedState || 'State'} Jurisdiction`}
           </span>
           <h1 className="text-xl sm:text-2xl font-bold text-[#14532D] dark:text-[#F0FDF4] mt-0.5">
-            State Administrator Governance & Approvals
+            {isSuperAdmin
+              ? 'State Administrator Governance & Approvals'
+              : `${user?.assignedState || 'My State'} State Administrator Overview`}
           </h1>
           <p className="text-xs sm:text-sm text-[#475569] dark:text-[#A7C4B0]">
-            Review self-registered state administrators, approve timetable editing rights, and provision multiple admins per state.
+            {isSuperAdmin
+              ? 'Review self-registered state administrators, approve timetable editing rights, and provision multiple admins per state.'
+              : `Viewing administrative officer records strictly for ${user?.assignedState || 'your state'} transport administration.`}
           </p>
         </div>
 
@@ -204,6 +208,21 @@ export const AdminStateAdminsPage = () => {
           </Button>
         )}
       </div>
+
+      {/* State Admin Isolation Notice */}
+      {!isSuperAdmin && (
+        <div className="p-3.5 rounded-xl bg-[#F0FDF4] dark:bg-[#10231B] border border-[#166534]/30 dark:border-[#4ADE80]/30 text-[#14532D] dark:text-[#D1E7D8] text-xs flex items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <ShieldAlert className="w-4 h-4 text-[#166534] dark:text-[#4ADE80] shrink-0" />
+            <span>
+              <strong>State Privacy Protection Active:</strong> As <strong>{user?.assignedState} State Administrator</strong>, your access is strictly confined to {user?.assignedState} jurisdiction. Under national transport privacy policy, other state administrations are confidential and managed exclusively by the National Super Administrator.
+            </span>
+          </div>
+          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#DCFCE7] dark:bg-[#234B35] text-[#166534] dark:text-[#4ADE80] shrink-0">
+            {user?.assignedState} Only
+          </span>
+        </div>
+      )}
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
@@ -246,8 +265,12 @@ export const AdminStateAdminsPage = () => {
         <Card className="p-4 bg-white dark:bg-[#162B22]">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-[#64748B] dark:text-[#A7C4B0] font-semibold">Active States</p>
-              <p className="text-2xl font-bold text-[#0F766E] dark:text-[#5EEAD4] mt-1">{uniqueStates}</p>
+              <p className="text-xs text-[#64748B] dark:text-[#A7C4B0] font-semibold">
+                {isSuperAdmin ? 'Active States' : 'Your Jurisdiction'}
+              </p>
+              <p className="text-xl font-bold text-[#0F766E] dark:text-[#5EEAD4] mt-1 truncate">
+                {isSuperAdmin ? `${uniqueStates} States` : user?.assignedState}
+              </p>
             </div>
             <div className="w-10 h-10 rounded-lg bg-[#CCFBF1] dark:bg-[#134E4A] text-[#0F766E] dark:text-[#5EEAD4] flex items-center justify-center">
               <MapPin className="w-5 h-5" />

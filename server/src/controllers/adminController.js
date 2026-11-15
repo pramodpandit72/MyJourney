@@ -8,6 +8,7 @@ import SeatInventory from '../models/SeatInventory.js';
 import CancellationPolicy from '../models/CancellationPolicy.js';
 import AuditLog from '../models/AuditLog.js';
 import User from '../models/User.js';
+import PrivacySettings from '../models/PrivacySettings.js';
 import bcrypt from 'bcryptjs';
 import { sendSuccess, sendError } from '../utils/response.js';
 import { logAuditEvent } from '../utils/auditLogger.js';
@@ -687,14 +688,21 @@ export const getAuditLogs = async (req, res, next) => {
 
 export const getStateAdmins = async (req, res, next) => {
   try {
+    const isSuperAdmin = (req.user.assignedState || 'ALL') === 'ALL';
     const { status, state } = req.query;
     const filter = {
       role: USER_ROLES.ADMIN,
       assignedState: { $exists: true, $ne: 'ALL' }
     };
 
+    if (!isSuperAdmin) {
+      // Non-super admins (State Admins) are strictly restricted to their own assigned state!
+      filter.assignedState = req.user.assignedState;
+    } else if (state && state !== 'ALL') {
+      filter.assignedState = state;
+    }
+
     if (status && status !== 'ALL') filter.verificationStatus = status;
-    if (state && state !== 'ALL') filter.assignedState = state;
 
     const admins = await User.find(filter)
       .select('-passwordHash')
@@ -703,7 +711,8 @@ export const getStateAdmins = async (req, res, next) => {
 
     return sendSuccess(res, {
       admins,
-      isSuperAdmin: (req.user.assignedState || 'ALL') === 'ALL',
+      isSuperAdmin,
+      myAssignedState: req.user.assignedState || 'ALL',
       totalCount: admins.length
     });
   } catch (err) {
@@ -858,4 +867,82 @@ export const rejectStateAdmin = async (req, res, next) => {
     next(err);
   }
 };
+
+// ==========================================
+// PRIVACY & DATA GOVERNANCE SETTINGS (SUPER ADMIN ONLY)
+// ==========================================
+
+export const getPrivacySettings = async (req, res, next) => {
+  try {
+    let settings = await PrivacySettings.findOne().populate('updatedBy', 'name email');
+    if (!settings) {
+      settings = await PrivacySettings.create({
+        maskPassengerPii: true,
+        restrictCrossStateViewing: true,
+        requireConsentForBooking: true,
+        auditLogRetentionDays: 180,
+        updatedBy: req.user._id
+      });
+      settings = await PrivacySettings.findById(settings._id).populate('updatedBy', 'name email');
+    }
+
+    const isSuperAdmin = (req.user.assignedState || 'ALL') === 'ALL';
+    return sendSuccess(res, {
+      settings,
+      canModify: isSuperAdmin,
+      isSuperAdmin
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updatePrivacySettings = async (req, res, next) => {
+  try {
+    const isSuperAdmin = (req.user.assignedState || 'ALL') === 'ALL';
+    if (!isSuperAdmin) {
+      return sendError(
+        res,
+        'Permission Denied: Only the National Super Administrator has permission to configure privacy and data protection settings.',
+        403,
+        'SUPER_ADMIN_REQUIRED'
+      );
+    }
+
+    const {
+      maskPassengerPii,
+      restrictCrossStateViewing,
+      requireConsentForBooking,
+      auditLogRetentionDays
+    } = req.body;
+
+    let settings = await PrivacySettings.findOne();
+    if (!settings) {
+      settings = new PrivacySettings();
+    }
+
+    if (maskPassengerPii !== undefined) settings.maskPassengerPii = Boolean(maskPassengerPii);
+    if (restrictCrossStateViewing !== undefined) settings.restrictCrossStateViewing = Boolean(restrictCrossStateViewing);
+    if (requireConsentForBooking !== undefined) settings.requireConsentForBooking = Boolean(requireConsentForBooking);
+    if (auditLogRetentionDays !== undefined) settings.auditLogRetentionDays = Number(auditLogRetentionDays);
+    settings.updatedBy = req.user._id;
+
+    await settings.save();
+
+    await logAuditEvent({
+      actorId: req.user._id,
+      actorRole: req.user.role,
+      action: 'PRIVACY_SETTINGS_UPDATED',
+      entityType: 'PrivacySettings',
+      entityId: settings._id,
+      summary: `Super Admin ${req.user.name} updated privacy settings (PII Masking: ${settings.maskPassengerPii}, Cross-State Isolation: ${settings.restrictCrossStateViewing})`
+    });
+
+    const populated = await PrivacySettings.findById(settings._id).populate('updatedBy', 'name email');
+    return sendSuccess(res, { settings: populated }, 'Privacy settings successfully updated by Super Admin');
+  } catch (err) {
+    next(err);
+  }
+};
+
 
