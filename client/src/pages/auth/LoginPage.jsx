@@ -50,10 +50,12 @@ export const LoginPage = () => {
   };
 
   const demoAccounts = [
-    { label: 'Passenger', email: 'customer@myjourney.in', role: 'Customer' },
-    { label: 'Administrator', email: 'admin@myjourney.in', role: 'Admin' },
-    { label: 'Delhi Operator', email: 'operator.delhi@myjourney.in', role: 'Operator' },
-    { label: 'Jaipur Operator', email: 'operator.jaipur@myjourney.in', role: 'Operator' }
+    { label: 'Super Admin (All States)', email: 'admin@myjourney.in', desc: 'National Scope' },
+    { label: 'Punjab State Admin', email: 'admin.punjab@myjourney.in', desc: 'Punjab Timetables' },
+    { label: 'Delhi State Admin', email: 'admin.delhi@myjourney.in', desc: 'Delhi Timetables' },
+    { label: 'Rajasthan State Admin', email: 'admin.rajasthan@myjourney.in', desc: 'Rajasthan Timetables' },
+    { label: 'Fleet Operator', email: 'operator.delhi@myjourney.in', desc: 'Manifests' },
+    { label: 'Passenger Customer', email: 'customer@myjourney.in', desc: 'Bookings' }
   ];
 
   return (

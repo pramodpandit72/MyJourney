@@ -188,56 +188,45 @@ export const LandingPage = () => {
               </div>
             </div>
 
-            {/* Clean Restrained Public Transport SVG Graphic */}
+            {/* Professional Intercity Fleet Showcase */}
             <div className="lg:col-span-5 hidden sm:flex justify-center lg:justify-end">
-              <div className="w-full max-w-md bg-white dark:bg-[#162B22] border border-[#DCE7DF] dark:border-[#294A38] rounded-xl p-5 shadow-xs">
-                <svg
-                  viewBox="0 0 360 175"
-                  className="w-full h-auto"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                  aria-label="MyJourney Intercity Transit Corridor Illustration"
-                >
-                  {/* Soft backdrop */}
-                  <rect width="360" height="175" rx="8" className="fill-[#F0FDF4] dark:fill-[#10231B]" />
-                  {/* Route Line */}
-                  <path
-                    d="M36 138 H324"
-                    stroke="#0F766E"
-                    strokeWidth="2"
-                    strokeDasharray="5 4"
-                    strokeOpacity="0.45"
+              <div className="relative w-full max-w-md bg-white dark:bg-[#162B22] border border-[#DCE7DF] dark:border-[#294A38] rounded-2xl overflow-hidden shadow-sm group">
+                <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-[#F0FDF4] dark:bg-[#10231B]">
+                  <img
+                    src="/bus.avif"
+                    alt="MyJourney Modern Intercity Bus Fleet"
+                    className="w-full h-full object-cover object-center transform group-hover:scale-102 transition-transform duration-500"
+                    loading="eager"
                   />
-                  {/* Origin & Destination Pins */}
-                  <circle cx="48" cy="138" r="6" fill="#166534" />
-                  <circle cx="48" cy="138" r="2.5" fill="#FFFFFF" />
-                  <circle cx="312" cy="138" r="6" fill="#0F766E" />
-                  <circle cx="312" cy="138" r="2.5" fill="#FFFFFF" />
+                  {/* Subtle Gradient Overlay preserving government theme text contrast */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#14532D]/80 via-transparent to-transparent pointer-events-none" />
 
-                  {/* Clean Intercity Coach Silhouette */}
-                  <rect x="86" y="48" width="188" height="72" rx="10" fill="#166534" />
-                  <rect x="94" y="56" width="172" height="32" rx="4" fill="#DCFCE7" />
-                  {/* Coach Windows */}
-                  <line x1="132" y1="56" x2="132" y2="88" stroke="#166534" strokeWidth="2.5" />
-                  <line x1="170" y1="56" x2="170" y2="88" stroke="#166534" strokeWidth="2.5" />
-                  <line x1="208" y1="56" x2="208" y2="88" stroke="#166534" strokeWidth="2.5" />
-                  <line x1="242" y1="56" x2="242" y2="88" stroke="#166534" strokeWidth="2.5" />
-                  {/* Aqua Accent Stripe */}
-                  <rect x="86" y="96" width="188" height="6" fill="#0F766E" />
-                  <rect x="86" y="102" width="188" height="3" fill="#5EEAD4" />
-                  {/* Wheels */}
-                  <circle cx="126" cy="122" r="13" fill="#172B24" />
-                  <circle cx="126" cy="122" r="5" fill="#DCE7DF" />
-                  <circle cx="234" cy="122" r="13" fill="#172B24" />
-                  <circle cx="234" cy="122" r="5" fill="#DCE7DF" />
-                  {/* Labels */}
-                  <text x="34" y="158" fontSize="10" fontWeight="600" className="fill-[#14532D] dark:fill-[#D1E7D8]">
-                    ORIGIN
-                  </text>
-                  <text x="278" y="158" fontSize="10" fontWeight="600" className="fill-[#0F766E] dark:fill-[#5EEAD4]">
-                    DESTINATION
-                  </text>
-                </svg>
+                  {/* Top Badge: Verified Public Transport Fleet */}
+                  <div className="absolute top-3.5 left-3.5 flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white/95 dark:bg-[#162B22]/95 backdrop-blur-xs border border-[#DCE7DF] dark:border-[#294A38] text-[11px] font-bold text-[#166534] dark:text-[#4ADE80] shadow-xs">
+                    <ShieldCheck className="w-3.5 h-3.5 text-[#166534] dark:text-[#4ADE80]" />
+                    <span>Certified Modern Fleet</span>
+                  </div>
+
+                  {/* Top Right: Bus Category Badge */}
+                  <div className="absolute top-3.5 right-3.5 px-2 py-0.5 rounded text-[10px] font-bold bg-[#0F766E] text-white shadow-xs uppercase tracking-wider">
+                    AC Express
+                  </div>
+
+                  {/* Bottom Information Card Overlay */}
+                  <div className="absolute bottom-3 left-3 right-3 p-3 rounded-xl bg-white/95 dark:bg-[#10231B]/95 backdrop-blur-sm border border-white/40 dark:border-[#294A38]/60 shadow-xs flex items-center justify-between text-xs">
+                    <div>
+                      <p className="font-bold text-[#14532D] dark:text-[#F0FDF4] text-xs">
+                        Intercity Travel Experience
+                      </p>
+                      <p className="text-[10px] text-[#475569] dark:text-[#A7C4B0]">
+                        GPS Tracked • Air Suspension • Sanitized
+                      </p>
+                    </div>
+                    <span className="px-2 py-1 rounded bg-[#DCFCE7] dark:bg-[#234B35] text-[#166534] dark:text-[#4ADE80] text-[10px] font-bold shrink-0">
+                      Standardized Comfort
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

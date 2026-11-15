@@ -106,15 +106,56 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
     }
     console.log(`[Seed] ${operatorDocs.length} Operators verified/seeded.`);
 
-    // 3. Users (Admin, Operators, Customer)
+    // 3. Users (Super Admin, State Admins, Operators, Customer)
     const usersData = [
       {
-        name: 'Chief Transport Administrator',
+        name: 'Chief Transport Administrator (All States)',
         email: 'admin@myjourney.in',
         legacyEmail: 'admin@yatrasetu.gov.in',
         passwordHash,
         role: USER_ROLES.ADMIN,
+        assignedState: 'ALL',
         phone: '+91-9876543210'
+      },
+      {
+        name: 'Punjab State Admin (PUNBUS / PRTC)',
+        email: 'admin.punjab@myjourney.in',
+        passwordHash,
+        role: USER_ROLES.ADMIN,
+        assignedState: 'Punjab',
+        phone: '+91-9876543220'
+      },
+      {
+        name: 'Delhi State Admin (DTC / ISBT)',
+        email: 'admin.delhi@myjourney.in',
+        passwordHash,
+        role: USER_ROLES.ADMIN,
+        assignedState: 'Delhi',
+        phone: '+91-9876543221'
+      },
+      {
+        name: 'Rajasthan State Admin (RSRTC)',
+        email: 'admin.rajasthan@myjourney.in',
+        passwordHash,
+        role: USER_ROLES.ADMIN,
+        assignedState: 'Rajasthan',
+        phone: '+91-9876543222'
+      },
+      {
+        name: 'Haryana State Admin (Haryana Roadways)',
+        email: 'admin.haryana@myjourney.in',
+        passwordHash,
+        role: USER_ROLES.ADMIN,
+        assignedState: 'Haryana',
+        phone: '+91-9876543223'
+      },
+      {
+        name: 'Uttar Pradesh State Admin (UPSRTC)',
+        email: 'admin.up@myjourney.in',
+        passwordHash,
+        role: USER_ROLES.ADMIN,
+        assignedState: 'Uttar Pradesh',
+        phone: '+91-9876543224'
       },
       {
         name: 'Delhi Fleet Manager',
@@ -157,10 +198,16 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
       }
       if (!doc) {
         doc = await User.create(userFields);
+      } else {
+        doc.assignedState = userFields.assignedState || 'ALL';
+        doc.name = userFields.name;
+        doc.role = userFields.role;
+        doc.passwordHash = passwordHash;
+        await doc.save();
       }
       userDocs.push(doc);
     }
-    console.log(`[Seed] ${userDocs.length} Users verified/seeded.`);
+    console.log(`[Seed] ${userDocs.length} Users verified/seeded (Super Admin + State Admins + Operators + Passenger).`);
 
     // 4. Stops
     const stopsData = [
@@ -176,6 +223,7 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
       { name: 'Ludhiana Central Bus Stand', city: 'Ludhiana', state: 'Punjab', stopCode: 'LDH-CBS' },
       { name: 'Amritsar ISBT (Near Golden Temple)', city: 'Amritsar', state: 'Punjab', stopCode: 'ASR-ISBT' },
       { name: 'Jalandhar City Bus Stand', city: 'Jalandhar', state: 'Punjab', stopCode: 'JAL-CBS' },
+      { name: 'Phagwara Bus Stand', city: 'Phagwara', state: 'Punjab', stopCode: 'PHG-CBS' },
       { name: 'Idgah Bus Stand', city: 'Agra', state: 'Uttar Pradesh', stopCode: 'AGR-IDG' }
     ];
 
@@ -230,6 +278,14 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
         totalSeats: 40,
         amenities: ['AC', 'Charging Point', 'Water Bottle'],
         seatLayoutType: '2+2'
+      },
+      {
+        operatorId: operatorDocs[2]._id,
+        registrationNumber: 'PB-10-CZ-7702',
+        busType: 'Volvo Multi-Axle AC (2+2)',
+        totalSeats: 40,
+        amenities: ['AC', 'WiFi', 'Charging Point', 'Water Bottle', 'CCTV'],
+        seatLayoutType: '2+2'
       }
     ];
 
@@ -279,14 +335,27 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
         ]
       },
       {
-        routeName: 'Amritsar (ISBT) to Ludhiana (Central)',
+        routeName: 'Amritsar (ISBT) to Ludhiana (Central) via Jalandhar & Phagwara',
         routeCode: 'ASR-LDH-EXP',
         totalDistance: 140,
         estimatedDuration: '2h 45m',
         stops: [
           { stopId: stopMap.get('ASR-ISBT')._id, stopOrder: 1, distanceKm: 0, timeOffsetMinutes: 0 },
           { stopId: stopMap.get('JAL-CBS')._id, stopOrder: 2, distanceKm: 80, timeOffsetMinutes: 90 },
-          { stopId: stopMap.get('LDH-CBS')._id, stopOrder: 3, distanceKm: 140, timeOffsetMinutes: 165 }
+          { stopId: stopMap.get('PHG-CBS')._id, stopOrder: 3, distanceKm: 102, timeOffsetMinutes: 120 },
+          { stopId: stopMap.get('LDH-CBS')._id, stopOrder: 4, distanceKm: 140, timeOffsetMinutes: 165 }
+        ]
+      },
+      {
+        routeName: 'Ludhiana (Central) to Amritsar (ISBT) via Phagwara & Jalandhar',
+        routeCode: 'LDH-ASR-EXP',
+        totalDistance: 140,
+        estimatedDuration: '2h 45m',
+        stops: [
+          { stopId: stopMap.get('LDH-CBS')._id, stopOrder: 1, distanceKm: 0, timeOffsetMinutes: 0 },
+          { stopId: stopMap.get('PHG-CBS')._id, stopOrder: 2, distanceKm: 38, timeOffsetMinutes: 45 },
+          { stopId: stopMap.get('JAL-CBS')._id, stopOrder: 3, distanceKm: 60, timeOffsetMinutes: 75 },
+          { stopId: stopMap.get('ASR-ISBT')._id, stopOrder: 4, distanceKm: 140, timeOffsetMinutes: 165 }
         ]
       },
       {
@@ -306,111 +375,197 @@ export const runSeed = async (mongoUri = process.env.MONGODB_URI) => {
       let doc = await Route.findOne({ routeCode: r.routeCode });
       if (!doc) {
         doc = await Route.create(r);
+      } else {
+        doc.routeName = r.routeName;
+        doc.totalDistance = r.totalDistance;
+        doc.estimatedDuration = r.estimatedDuration;
+        doc.stops = r.stops;
+        await doc.save();
       }
       routeDocs.push(doc);
     }
     console.log(`[Seed] ${routeDocs.length} Routes verified/seeded.`);
 
-    // 7. Trips (Dynamic future dates for today, tomorrow, and subsequent days)
-    const now = new Date();
-    const tripSchedules = [
-      // Day 0 (Today + 4 hours)
+    // 7. Trips (Recurring daily services across all corridors for the next 30 days)
+    const routeMap = new Map();
+    for (const r of routeDocs) {
+      routeMap.set(r.routeCode, r);
+    }
+
+    const recurringServices = [
+      // Delhi <-> Jaipur
       {
-        route: routeDocs[0],
-        bus: busDocs[0],
-        operator: operatorDocs[0],
-        depOffsetHours: 4,
+        routeCode: 'DEL-JAI-EXP',
+        busIndex: 0,
+        operatorIndex: 0,
+        departureHour: 6,
+        departureMin: 30,
         durationMinutes: 330,
         baseFare: 750
       },
-      // Day 0 evening
       {
-        route: routeDocs[0],
-        bus: busDocs[2],
-        operator: operatorDocs[1],
-        depOffsetHours: 8,
+        routeCode: 'DEL-JAI-EXP',
+        busIndex: 2,
+        operatorIndex: 1,
+        departureHour: 15,
+        departureMin: 30,
         durationMinutes: 360,
         baseFare: 890
       },
-      // Tomorrow Morning
+      // Chandigarh -> Delhi
       {
-        route: routeDocs[0],
-        bus: busDocs[3],
-        operator: operatorDocs[1],
-        depOffsetHours: 24,
-        durationMinutes: 330,
-        baseFare: 720
-      },
-      // Tomorrow Afternoon (Chandigarh -> Delhi)
-      {
-        route: routeDocs[1],
-        bus: busDocs[4],
-        operator: operatorDocs[2],
-        depOffsetHours: 28,
+        routeCode: 'CHD-DEL-EXP',
+        busIndex: 3,
+        operatorIndex: 1,
+        departureHour: 7,
+        departureMin: 15,
         durationMinutes: 285,
         baseFare: 550
       },
-      // Day 2 (Amritsar -> Ludhiana)
       {
-        route: routeDocs[2],
-        bus: busDocs[4],
-        operator: operatorDocs[2],
-        depOffsetHours: 48,
+        routeCode: 'CHD-DEL-EXP',
+        busIndex: 0,
+        operatorIndex: 0,
+        departureHour: 16,
+        departureMin: 45,
+        durationMinutes: 285,
+        baseFare: 620
+      },
+      // Amritsar -> Jalandhar -> Phagwara -> Ludhiana
+      {
+        routeCode: 'ASR-LDH-EXP',
+        busIndex: 4,
+        operatorIndex: 2,
+        departureHour: 7,
+        departureMin: 30,
         durationMinutes: 165,
         baseFare: 320
       },
-      // Day 3 (Delhi -> Agra)
       {
-        route: routeDocs[3],
-        bus: busDocs[1],
-        operator: operatorDocs[0],
-        depOffsetHours: 72,
+        routeCode: 'ASR-LDH-EXP',
+        busIndex: 5,
+        operatorIndex: 2,
+        departureHour: 12,
+        departureMin: 30,
+        durationMinutes: 165,
+        baseFare: 350
+      },
+      {
+        routeCode: 'ASR-LDH-EXP',
+        busIndex: 4,
+        operatorIndex: 2,
+        departureHour: 17,
+        departureMin: 45,
+        durationMinutes: 165,
+        baseFare: 320
+      },
+      // Ludhiana -> Phagwara -> Jalandhar -> Amritsar
+      {
+        routeCode: 'LDH-ASR-EXP',
+        busIndex: 5,
+        operatorIndex: 2,
+        departureHour: 8,
+        departureMin: 15,
+        durationMinutes: 165,
+        baseFare: 350
+      },
+      {
+        routeCode: 'LDH-ASR-EXP',
+        busIndex: 4,
+        operatorIndex: 2,
+        departureHour: 14,
+        departureMin: 0,
+        durationMinutes: 165,
+        baseFare: 320
+      },
+      {
+        routeCode: 'LDH-ASR-EXP',
+        busIndex: 5,
+        operatorIndex: 2,
+        departureHour: 19,
+        departureMin: 30,
+        durationMinutes: 165,
+        baseFare: 350
+      },
+      // Delhi -> Agra
+      {
+        routeCode: 'DEL-AGR-EXP',
+        busIndex: 1,
+        operatorIndex: 0,
+        departureHour: 8,
+        departureMin: 0,
         durationMinutes: 210,
         baseFare: 450
+      },
+      {
+        routeCode: 'DEL-AGR-EXP',
+        busIndex: 1,
+        operatorIndex: 0,
+        departureHour: 15,
+        departureMin: 30,
+        durationMinutes: 210,
+        baseFare: 480
       }
     ];
 
     const tripDocs = [];
-    for (let i = 0; i < tripSchedules.length; i++) {
-      const s = tripSchedules[i];
-      const departureAt = new Date(now.getTime() + s.depOffsetHours * 60 * 60 * 1000);
-      const arrivalAt = new Date(departureAt.getTime() + s.durationMinutes * 60 * 1000);
+    for (let dayOffset = 0; dayOffset <= 30; dayOffset++) {
+      const targetDate = new Date(Date.now() + dayOffset * 86400000);
+      const istDateStr = targetDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
 
-      // Check existing trip on same route, bus, and approx departure
-      let trip = await Trip.findOne({
-        routeId: s.route._id,
-        busId: s.bus._id,
-        departureAt: {
-          $gte: new Date(departureAt.getTime() - 60 * 60 * 1000),
-          $lte: new Date(departureAt.getTime() + 60 * 60 * 1000)
-        }
-      });
+      for (const s of recurringServices) {
+        const route = routeMap.get(s.routeCode);
+        if (!route) continue;
+        const bus = busDocs[s.busIndex] || busDocs[0];
+        const operator = operatorDocs[s.operatorIndex] || operatorDocs[0];
 
-      if (!trip) {
-        trip = await Trip.create({
-          routeId: s.route._id,
-          busId: s.bus._id,
-          operatorId: s.operator._id,
-          departureAt,
-          arrivalAt,
-          baseFare: s.baseFare,
-          status: 'SCHEDULED'
+        const hh = String(s.departureHour).padStart(2, '0');
+        const mm = String(s.departureMin).padStart(2, '0');
+        const departureAt = new Date(`${istDateStr}T${hh}:${mm}:00+05:30`);
+        const arrivalAt = new Date(departureAt.getTime() + s.durationMinutes * 60 * 1000);
+
+        let trip = await Trip.findOne({
+          routeId: route._id,
+          busId: bus._id,
+          departureAt
         });
 
-        // Initialize SeatInventory for this trip
-        const busSeats = s.bus.seatLayout?.seats || [];
-        const seatDocs = busSeats.map(st => ({
-          tripId: trip._id,
-          seatNumber: st.seatNumber,
-          status: SEAT_STATUS.AVAILABLE
-        }));
-        if (seatDocs.length > 0) {
-          await SeatInventory.insertMany(seatDocs);
+        let tripState = 'Interstate';
+        if (s.routeCode.includes('ASR') || s.routeCode.includes('LDH')) tripState = 'Punjab';
+        else if (s.routeCode === 'DEL-JAI-EXP') tripState = 'Delhi';
+        else if (s.routeCode === 'CHD-DEL-EXP') tripState = 'Punjab';
+        else if (s.routeCode === 'DEL-AGR-EXP') tripState = 'Uttar Pradesh';
+
+        if (!trip) {
+          trip = await Trip.create({
+            routeId: route._id,
+            busId: bus._id,
+            operatorId: operator._id,
+            departureAt,
+            arrivalAt,
+            baseFare: s.baseFare,
+            state: tripState,
+            status: 'SCHEDULED'
+          });
+
+          // Initialize SeatInventory for this trip
+          const busSeats = bus.seatLayout?.seats || [];
+          const seatDocs = busSeats.map(st => ({
+            tripId: trip._id,
+            seatNumber: st.seatNumber,
+            status: SEAT_STATUS.AVAILABLE
+          }));
+          if (seatDocs.length > 0) {
+            await SeatInventory.insertMany(seatDocs);
+          }
+        } else if (!trip.state) {
+          trip.state = tripState;
+          await trip.save();
         }
+        tripDocs.push(trip);
       }
-      tripDocs.push(trip);
     }
-    console.log(`[Seed] ${tripDocs.length} Future Trips verified/seeded.`);
+    console.log(`[Seed] ${tripDocs.length} Future Trips verified/seeded across 30 days.`);
 
     // 8. Demo Booking (Seed one confirmed booking on Trip 0 for Vikram Sharma)
     const demoTrip = tripDocs[0];

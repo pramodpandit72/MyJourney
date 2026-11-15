@@ -337,15 +337,69 @@ export const updateRoute = async (req, res, next) => {
   }
 };
 
-// Trips CRUD
+// Helper to extract states touched by a route
+const getRouteStates = (route) => {
+  if (!route || !Array.isArray(route.stops)) return [];
+  const stateSet = new Set();
+  for (const s of route.stops) {
+    const st = s.stopId?.state || s.state;
+    if (st) {
+      st.split('&').forEach(p => stateSet.add(p.trim()));
+      stateSet.add(st.trim());
+    }
+  }
+  return Array.from(stateSet);
+};
+
+// Check if admin user has permission to manage a route/trip based on state jurisdiction
+const canAdminManageState = (user, statesArray = []) => {
+  if (!user || user.role !== USER_ROLES.ADMIN) return false;
+  const adminState = user.assignedState || 'ALL';
+  if (adminState === 'ALL') return true;
+  if (!statesArray || statesArray.length === 0) return true;
+  return statesArray.some(s => s.toLowerCase().includes(adminState.toLowerCase()));
+};
+
+// Trips & Timetables Management
 export const getTrips = async (req, res, next) => {
   try {
+    const { state } = req.query;
+    const adminState = req.user?.assignedState || 'ALL';
+
     const trips = await Trip.find()
-      .populate('routeId')
+      .populate({
+        path: 'routeId',
+        populate: { path: 'stops.stopId' }
+      })
       .populate('busId')
       .populate('operatorId')
       .sort({ departureAt: -1 });
-    return sendSuccess(res, { trips });
+
+    const enrichedTrips = trips.map(t => {
+      const tripObj = t.toObject();
+      const routeStates = getRouteStates(t.routeId);
+      const primaryState = t.state || routeStates[0] || 'Interstate';
+      tripObj.state = primaryState;
+      tripObj.routeStates = routeStates;
+      tripObj.canEdit = canAdminManageState(req.user, routeStates.length > 0 ? routeStates : [primaryState]);
+      return tripObj;
+    });
+
+    let filteredTrips = enrichedTrips;
+    if (state && state !== 'ALL') {
+      filteredTrips = filteredTrips.filter(t =>
+        t.state?.toLowerCase() === state.toLowerCase() ||
+        t.routeStates?.some(s => s.toLowerCase().includes(state.toLowerCase()))
+      );
+    }
+
+    return sendSuccess(res, {
+      trips: filteredTrips,
+      adminScope: {
+        assignedState: adminState,
+        isSuperAdmin: adminState === 'ALL'
+      }
+    });
   } catch (err) {
     next(err);
   }
@@ -353,10 +407,27 @@ export const getTrips = async (req, res, next) => {
 
 export const createTrip = async (req, res, next) => {
   try {
-    const { routeId, busId, operatorId, departureAt, arrivalAt, baseFare } = req.body;
+    const { routeId, busId, operatorId, departureAt, arrivalAt, baseFare, state } = req.body;
+
+    const route = await Route.findById(routeId).populate('stops.stopId');
+    if (!route) return sendError(res, 'Route not found', 404);
 
     const bus = await Bus.findById(busId);
     if (!bus) return sendError(res, 'Bus not found', 404);
+
+    // State permission check
+    const routeStates = getRouteStates(route);
+    const assignedState = req.user?.assignedState || 'ALL';
+    if (!canAdminManageState(req.user, routeStates)) {
+      return sendError(
+        res,
+        `Permission Denied: As a ${assignedState} State Administrator, you can only schedule timetables for routes serving ${assignedState}.`,
+        403,
+        'STATE_PERMISSION_DENIED'
+      );
+    }
+
+    const tripState = state || routeStates[0] || assignedState;
 
     const trip = await Trip.create({
       routeId,
@@ -365,6 +436,7 @@ export const createTrip = async (req, res, next) => {
       departureAt: new Date(departureAt),
       arrivalAt: new Date(arrivalAt),
       baseFare,
+      state: tripState,
       status: 'SCHEDULED'
     });
 
@@ -386,10 +458,57 @@ export const createTrip = async (req, res, next) => {
       action: 'TRIP_CREATED',
       entityType: 'Trip',
       entityId: trip._id,
-      summary: `Scheduled new trip on route ${routeId} with bus ${bus.registrationNumber}.`
+      summary: `[${tripState}] Scheduled new timetable on route ${route.routeName} (${route.routeCode}) with bus ${bus.registrationNumber}.`
     });
 
-    return sendSuccess(res, { trip }, 'Trip scheduled and seat inventory initialized', 201);
+    return sendSuccess(res, { trip }, 'Trip timetable scheduled and seat inventory initialized', 201);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateTrip = async (req, res, next) => {
+  try {
+    const trip = await Trip.findById(req.params.id).populate({
+      path: 'routeId',
+      populate: { path: 'stops.stopId' }
+    });
+    if (!trip) return sendError(res, 'Trip timetable not found', 404);
+
+    // State permission check
+    const routeStates = getRouteStates(trip.routeId);
+    const assignedState = req.user?.assignedState || 'ALL';
+    if (!canAdminManageState(req.user, routeStates.length > 0 ? routeStates : [trip.state])) {
+      return sendError(
+        res,
+        `Permission Denied: As a ${assignedState} State Administrator, you do not have permission to modify bus timetables outside ${assignedState}.`,
+        403,
+        'STATE_PERMISSION_DENIED'
+      );
+    }
+
+    const { departureAt, arrivalAt, baseFare, status, busId, operatorId, state } = req.body;
+
+    if (departureAt) trip.departureAt = new Date(departureAt);
+    if (arrivalAt) trip.arrivalAt = new Date(arrivalAt);
+    if (baseFare !== undefined) trip.baseFare = Number(baseFare);
+    if (status) trip.status = status;
+    if (busId) trip.busId = busId;
+    if (operatorId) trip.operatorId = operatorId;
+    if (state) trip.state = state;
+
+    await trip.save();
+
+    await logAuditEvent({
+      actorId: req.user._id,
+      actorRole: req.user.role,
+      action: 'TRIP_UPDATED',
+      entityType: 'Trip',
+      entityId: trip._id,
+      summary: `[${assignedState}] Updated timetable for trip ${trip._id}: departure=${trip.departureAt.toISOString()}, status=${trip.status}, fare=₹${trip.baseFare}.`
+    });
+
+    return sendSuccess(res, { trip }, 'Bus timetable updated successfully');
   } catch (err) {
     next(err);
   }
@@ -397,8 +516,23 @@ export const createTrip = async (req, res, next) => {
 
 export const cancelTrip = async (req, res, next) => {
   try {
-    const trip = await Trip.findById(req.params.id);
+    const trip = await Trip.findById(req.params.id).populate({
+      path: 'routeId',
+      populate: { path: 'stops.stopId' }
+    });
     if (!trip) return sendError(res, 'Trip not found', 404);
+
+    // State permission check
+    const routeStates = getRouteStates(trip.routeId);
+    const assignedState = req.user?.assignedState || 'ALL';
+    if (!canAdminManageState(req.user, routeStates.length > 0 ? routeStates : [trip.state])) {
+      return sendError(
+        res,
+        `Permission Denied: As a ${assignedState} State Administrator, you do not have permission to cancel bus departures outside ${assignedState}.`,
+        403,
+        'STATE_PERMISSION_DENIED'
+      );
+    }
 
     trip.status = 'CANCELLED';
     await trip.save();
@@ -409,7 +543,7 @@ export const cancelTrip = async (req, res, next) => {
       action: 'TRIP_CANCELLED',
       entityType: 'Trip',
       entityId: trip._id,
-      summary: `Trip ${trip._id} cancelled by administrator.`
+      summary: `[${assignedState}] Trip ${trip._id} cancelled by ${assignedState} administrator.`
     });
 
     return sendSuccess(res, { trip }, 'Trip status set to CANCELLED');

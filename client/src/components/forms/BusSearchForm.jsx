@@ -6,22 +6,52 @@ import { Button } from '../ui/index.js';
 
 const formatStopLabel = (stop) => `${stop.city} — ${stop.name}`;
 
+const CITY_ALIASES = {
+  pharwara: 'Phagwara',
+  phagwara: 'Phagwara',
+  jalandhar: 'Jalandhar',
+  jalandharcity: 'Jalandhar',
+  amritsar: 'Amritsar',
+  ludhiana: 'Ludhiana',
+  delhi: 'Delhi',
+  newdelhi: 'Delhi',
+  jaipur: 'Jaipur',
+  chandigarh: 'Chandigarh',
+  agra: 'Agra',
+  ambala: 'Ambala',
+  panipat: 'Panipat',
+  gurgaon: 'Gurgaon',
+  gurugram: 'Gurgaon',
+  noida: 'Noida'
+};
+
+const POPULAR_CORRIDORS = [
+  { origin: 'Jalandhar', dest: 'Phagwara', label: 'Jalandhar ⇄ Phagwara' },
+  { origin: 'Delhi', dest: 'Jaipur', label: 'Delhi ⇄ Jaipur' },
+  { origin: 'Chandigarh', dest: 'Delhi', label: 'Chandigarh ⇄ Delhi' },
+  { origin: 'Amritsar', dest: 'Ludhiana', label: 'Amritsar ⇄ Ludhiana' },
+  { origin: 'Delhi', dest: 'Agra', label: 'Delhi ⇄ Agra' }
+];
+
 const findMatchingStops = (text, stops) => {
   const cleaned = text.trim().toLowerCase();
   if (!cleaned) return [];
+  const normalizedKey = cleaned.replace(/[^a-z0-9]/g, '');
+  const aliasCity = CITY_ALIASES[normalizedKey];
 
   const exact = stops.filter(
     (s) =>
       formatStopLabel(s).toLowerCase() === cleaned ||
       s.city.toLowerCase() === cleaned ||
       s.name.toLowerCase() === cleaned ||
-      s.stopCode.toLowerCase() === cleaned
+      s.stopCode.toLowerCase() === cleaned ||
+      (aliasCity && s.city.toLowerCase() === aliasCity.toLowerCase())
   );
   if (exact.length > 0) return exact;
 
   return stops.filter((s) => {
     const target = `${s.city} ${s.name} ${s.stopCode} ${s.state || ''}`.toLowerCase();
-    return target.includes(cleaned);
+    return target.includes(cleaned) || (aliasCity && target.includes(aliasCity.toLowerCase()));
   });
 };
 
@@ -229,6 +259,25 @@ export const BusSearchForm = ({ initialValues = {}, className = '' }) => {
             <span>Search Buses</span>
           </Button>
         </div>
+      </div>
+
+      {/* Popular Corridors Shortcuts */}
+      <div className="mt-3.5 pt-3 border-t border-[#DCE7DF]/60 dark:border-[#294A38]/60 flex flex-wrap items-center gap-2 text-xs">
+        <span className="font-semibold text-[#475569] dark:text-[#A7C4B0]">Frequent Corridors:</span>
+        {POPULAR_CORRIDORS.map((c) => (
+          <button
+            key={c.label}
+            type="button"
+            onClick={() => {
+              setFromText(c.origin);
+              setToText(c.dest);
+              setError('');
+            }}
+            className="px-2.5 py-1 rounded-md bg-[#F0FDF4] dark:bg-[#10231B] hover:bg-[#DCFCE7] dark:hover:bg-[#1C382C] text-[#166534] dark:text-[#4ADE80] border border-[#DCE7DF] dark:border-[#294A38] font-medium transition-colors cursor-pointer"
+          >
+            {c.label}
+          </button>
+        ))}
       </div>
     </form>
   );

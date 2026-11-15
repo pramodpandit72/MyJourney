@@ -26,7 +26,8 @@ const sendAuthResponse = (res, user, statusCode = 200, message = 'Success') => {
     email: user.email,
     role: user.role,
     operatorId: user.operatorId,
-    phone: user.phone
+    phone: user.phone,
+    assignedState: user.assignedState || 'ALL'
   };
 
   return sendSuccess(res, { user: userData, token }, message, statusCode);

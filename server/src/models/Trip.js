@@ -39,6 +39,11 @@ const tripSchema = new mongoose.Schema(
       type: String,
       default: 'INR'
     },
+    state: {
+      type: String,
+      trim: true,
+      default: ''
+    },
     status: {
       type: String,
       enum: Object.values(TRIP_STATUS),

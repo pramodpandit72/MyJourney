@@ -9,6 +9,7 @@ import {
   stopSchema,
   routeSchema,
   tripSchema,
+  updateTripSchema,
   cancellationPolicySchema
 } from '../validators/adminValidator.js';
 import { USER_ROLES } from '../config/constants.js';
@@ -43,6 +44,7 @@ router.put('/routes/:id', validateRequest(routeSchema.partial()), adminControlle
 // Trips
 router.get('/trips', adminController.getTrips);
 router.post('/trips', validateRequest(tripSchema), adminController.createTrip);
+router.put('/trips/:id', validateRequest(updateTripSchema), adminController.updateTrip);
 router.put('/trips/:id/cancel', adminController.cancelTrip);
 
 // Bookings

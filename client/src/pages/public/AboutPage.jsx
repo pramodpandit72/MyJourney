@@ -20,6 +20,24 @@ export const AboutPage = () => {
         </p>
       </div>
 
+      {/* Modern Fleet Showcase Banner */}
+      <div className="relative rounded-2xl overflow-hidden border border-[#DCE7DF] dark:border-[#294A38] shadow-sm max-h-72 bg-[#F0FDF4] dark:bg-[#10231B]">
+        <img
+          src="/bus.avif"
+          alt="MyJourney Intercity Bus Fleet"
+          className="w-full h-72 object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#14532D]/95 via-[#14532D]/40 to-transparent flex flex-col justify-end p-6 sm:p-8 text-white">
+          <span className="text-xs font-bold text-[#5EEAD4] uppercase tracking-wider">
+            Connected Public Transportation
+          </span>
+          <h2 className="text-xl sm:text-2xl font-bold mt-0.5">Reliable Intercity Corridors Across India</h2>
+          <p className="text-xs sm:text-sm text-[#D1E7D8] max-w-xl mt-1 leading-relaxed">
+            Standardized comfort, verified safety protocols, and live seat tracking across state roadways and partner transport corporations.
+          </p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <Card>
           <CardContent className="space-y-2.5">

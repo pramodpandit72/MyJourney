@@ -27,6 +27,11 @@ const userSchema = new mongoose.Schema(
       default: USER_ROLES.CUSTOMER,
       index: true
     },
+    assignedState: {
+      type: String,
+      trim: true,
+      default: 'ALL' // 'ALL' for National Super Admin, or specific state like 'Punjab', 'Delhi', 'Rajasthan'
+    },
     operatorId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Operator',

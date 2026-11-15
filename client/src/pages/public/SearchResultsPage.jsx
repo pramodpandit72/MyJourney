@@ -409,13 +409,43 @@ export const SearchResultsPage = () => {
           ) : error ? (
             <ErrorState message={error} onRetry={fetchTrips} />
           ) : filteredTrips.length === 0 ? (
-            <EmptyState
-              icon={Bus}
-              title="No Matching Bus Services Found"
-              description="No scheduled trips match your current route, date, or filter settings. Try resetting filters or searching another date."
-              actionLabel="Reset Filters"
-              onAction={resetFilters}
-            />
+            <div className="space-y-4">
+              <EmptyState
+                icon={Bus}
+                title="No Matching Bus Services Found"
+                description="No scheduled trips match your current route, date, or filter settings. Try resetting filters or searching another date."
+                actionLabel="Reset Filters"
+                onAction={resetFilters}
+              />
+              <Card>
+                <CardContent className="p-4 sm:p-5 text-center space-y-3">
+                  <p className="text-xs font-semibold text-[#14532D] dark:text-[#4ADE80] uppercase tracking-wider">
+                    Popular Corridors with Daily Buses
+                  </p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    {[
+                      { origin: 'Jalandhar', dest: 'Phagwara', label: 'Jalandhar ⇄ Phagwara' },
+                      { origin: 'Delhi', dest: 'Jaipur', label: 'Delhi ⇄ Jaipur' },
+                      { origin: 'Chandigarh', dest: 'Delhi', label: 'Chandigarh ⇄ Delhi' },
+                      { origin: 'Amritsar', dest: 'Ludhiana', label: 'Amritsar ⇄ Ludhiana' },
+                      { origin: 'Delhi', dest: 'Agra', label: 'Delhi ⇄ Agra' }
+                    ].map((item) => (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => {
+                          const today = new Date().toISOString().split('T')[0];
+                          navigate(`/search?originQuery=${encodeURIComponent(item.origin)}&destinationQuery=${encodeURIComponent(item.dest)}&travelDate=${travelDate || today}&passengers=1`);
+                        }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#F0FDF4] dark:bg-[#10231B] hover:bg-[#DCFCE7] dark:hover:bg-[#1C382C] text-[#166534] dark:text-[#4ADE80] border border-[#DCE7DF] dark:border-[#294A38] transition-colors cursor-pointer"
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           ) : (
             <div className="space-y-4">
               {filteredTrips.map((trip) => {

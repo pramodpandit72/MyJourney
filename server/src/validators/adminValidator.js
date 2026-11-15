@@ -47,8 +47,20 @@ export const tripSchema = z.object({
   departureAt: z.string().datetime().or(z.date()),
   arrivalAt: z.string().datetime().or(z.date()),
   baseFare: z.coerce.number().min(1, 'Base fare must be positive'),
+  state: z.string().trim().optional(),
   currency: z.string().optional().default('INR'),
-  status: z.enum(['SCHEDULED', 'ON_ROUTE', 'COMPLETED', 'CANCELLED']).optional().default('SCHEDULED')
+  status: z.enum(['SCHEDULED', 'ON_ROUTE', 'COMPLETED', 'CANCELLED', 'DELAYED']).optional().default('SCHEDULED')
+});
+
+export const updateTripSchema = z.object({
+  routeId: z.string().optional(),
+  busId: z.string().optional(),
+  operatorId: z.string().optional(),
+  departureAt: z.string().datetime().or(z.date()).optional(),
+  arrivalAt: z.string().datetime().or(z.date()).optional(),
+  baseFare: z.coerce.number().min(1).optional(),
+  state: z.string().trim().optional(),
+  status: z.enum(['SCHEDULED', 'ON_ROUTE', 'COMPLETED', 'CANCELLED', 'DELAYED']).optional()
 });
 
 export const cancellationPolicySchema = z.object({

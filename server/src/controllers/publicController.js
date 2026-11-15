@@ -30,9 +30,32 @@ export const getStops = async (req, res, next) => {
 
 const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+const CITY_ALIASES = {
+  pharwara: 'Phagwara',
+  phagwara: 'Phagwara',
+  delhi: 'Delhi',
+  newdelhi: 'Delhi',
+  dilli: 'Delhi',
+  jaipur: 'Jaipur',
+  jalandhar: 'Jalandhar',
+  jalandharcity: 'Jalandhar',
+  ludhiana: 'Ludhiana',
+  amritsar: 'Amritsar',
+  chandigarh: 'Chandigarh',
+  gurgaon: 'Gurgaon',
+  gurugram: 'Gurgaon',
+  panipat: 'Panipat',
+  ambala: 'Ambala',
+  agra: 'Agra',
+  behror: 'Behror'
+};
+
 const findMatchingStopIds = async (rawQuery) => {
   const cleaned = String(rawQuery || '').trim();
   if (!cleaned) return [];
+
+  const normalized = cleaned.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const aliasCity = CITY_ALIASES[normalized];
 
   const parts = cleaned
     .split(/[—,-]+/)
@@ -45,6 +68,11 @@ const findMatchingStopIds = async (rawQuery) => {
     { stopCode: { $regex: escapeRegex(cleaned), $options: 'i' } },
     { state: { $regex: escapeRegex(cleaned), $options: 'i' } }
   ];
+
+  if (aliasCity) {
+    orConditions.push({ city: { $regex: escapeRegex(aliasCity), $options: 'i' } });
+    orConditions.push({ name: { $regex: escapeRegex(aliasCity), $options: 'i' } });
+  }
 
   if (parts.length > 1) {
     const andMatch = parts.map((part) => {
@@ -122,7 +150,10 @@ export const searchTrips = async (req, res, next) => {
 
     // Find candidate trips populated with Route, Bus, and Operator
     const trips = await Trip.find(tripQuery)
-      .populate('routeId')
+      .populate({
+        path: 'routeId',
+        populate: { path: 'stops.stopId' }
+      })
       .populate('busId')
       .populate('operatorId')
       .sort({ [sortBy]: order === 'desc' ? -1 : 1 });
