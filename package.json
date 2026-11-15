@@ -1,0 +1,15 @@
+{
+  "name": "myjourney",
+  "version": "1.0.0",
+  "private": true,
+  "description": "MyJourney - National Intercity Bus Reservation & Timetable Management Portal",
+  "scripts": {
+    "dev": "npm --prefix server run dev",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "start": "npm --prefix server start",
+    "build": "npm --prefix client run build",
+    "seed": "npm --prefix server run seed",
+    "test": "npm --prefix server run test"
+  }
+}

@@ -158,6 +158,27 @@ export const searchTrips = async (req, res, next) => {
       .populate('operatorId')
       .sort({ [sortBy]: order === 'desc' ? -1 : 1 });
 
+    // Batch query booked seats count across all candidate trips in one query
+    const tripIds = trips.map((t) => t._id);
+    const bookedCounts = await SeatInventory.aggregate([
+      {
+        $match: {
+          tripId: { $in: tripIds },
+          status: SEAT_STATUS.BOOKED
+        }
+      },
+      {
+        $group: {
+          _id: '$tripId',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+    const bookedMap = new Map();
+    bookedCounts.forEach((b) => {
+      bookedMap.set(b._id.toString(), b.count);
+    });
+
     // Filter by route stops ordering (origin before destination) if specified
     const matchedTrips = [];
 
@@ -219,12 +240,9 @@ export const searchTrips = async (req, res, next) => {
         droppingStop = routeStops[routeStops.length - 1];
       }
 
-      // Check seat availability
+      // Check seat availability from pre-fetched batch map
       const totalSeats = trip.busId.totalSeats;
-      const bookedSeatsCount = await SeatInventory.countDocuments({
-        tripId: trip._id,
-        status: SEAT_STATUS.BOOKED
-      });
+      const bookedSeatsCount = bookedMap.get(trip._id.toString()) || 0;
       const availableSeatsCount = Math.max(0, totalSeats - bookedSeatsCount);
 
       // Calculate fare for this segment
